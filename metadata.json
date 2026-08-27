@@ -1,0 +1,6 @@
+{
+  "name": "MRSmovies",
+  "description": "A scalable AI movie recommendation system with mood-based discovery, personalized watchlists, community ratings, social sharing, and push episode alerts.",
+  "requestFramePermissions": ["notifications"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
