@@ -1,4 +1,6 @@
-node_modules/
+__pycache__/
+*.pyc
+watchlist.jsonnode_modules/
 build/
 dist/
 coverage/
