@@ -16,6 +16,7 @@ const state = {
   selectedMovie: null,
   featuredIndex: 0,
   featuredTimer: null,
+  user: null,
 };
 
 // Cache frequently used DOM elements so functions do not repeatedly query them.
@@ -46,13 +47,22 @@ const elements = {
   chatForm: document.querySelector("#chatForm"),
   chatInput: document.querySelector("#chatInput"),
   chatSend: document.querySelector("#chatSend"),
+  authButton: document.querySelector("#authButton"),
+  authDialog: document.querySelector("#authDialog"),
+  authForm: document.querySelector("#authForm"),
+  authNameField: document.querySelector("#authNameField"),
+  authName: document.querySelector("#authName"),
+  authEmail: document.querySelector("#authEmail"),
+  authPassword: document.querySelector("#authPassword"),
+  authError: document.querySelector("#authError"),
 };
 
 // Hosted browsers call Flask; the desktop build uses Python through PyWebView.
 async function fetchJson(url, options) {
   const response = await fetch(url, options);
-  if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
-  return response.json();
+  const body = await response.json();
+  if (!response.ok) throw new Error(body.error || `Request failed with status ${response.status}`);
+  return body;
 }
 
 const webApi = {
@@ -65,7 +75,20 @@ const webApi = {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message }),
   }),
+  get_session: () => fetchJson("/api/auth/session"),
+  signup: (name, email, password) => fetchJson("/api/auth/signup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, email, password }),
+  }),
+  login: (email, password) => fetchJson("/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  }),
+  logout: () => fetchJson("/api/auth/logout", { method: "POST" }),
   get_watchlist: async () => {
+    if (state.user) return fetchJson("/api/watchlist");
     try {
       return JSON.parse(localStorage.getItem("mrsmovies_watchlist") || "[]");
     } catch (error) {
@@ -73,6 +96,7 @@ const webApi = {
     }
   },
   toggle_watchlist: async (movieId) => {
+    if (state.user) return fetchJson(`/api/watchlist/${encodeURIComponent(movieId)}`, { method: "POST" });
     const watchlist = await webApi.get_watchlist();
     const updated = watchlist.includes(movieId)
       ? watchlist.filter((id) => id !== movieId)
@@ -89,6 +113,75 @@ const webApi = {
 
 function backendApi() {
   return window.pywebview?.api || webApi;
+}
+
+// ---------- Account sessions ----------
+function setAuthMode(mode) {
+  const isSignup = mode === "signup";
+  elements.authForm.dataset.mode = mode;
+  elements.authNameField.classList.toggle("hidden", !isSignup);
+  elements.authName.required = isSignup;
+  elements.authPassword.autocomplete = isSignup ? "new-password" : "current-password";
+  document.querySelector("#authTitle").textContent = isSignup ? "Create your account" : "Welcome back";
+  document.querySelector("#authCopy").textContent = isSignup
+    ? "Save a personal watchlist across signed-in sessions."
+    : "Sign in to open your account watchlist.";
+  document.querySelector("#authSubmit").textContent = isSignup ? "Create account" : "Sign in";
+  document.querySelector("#authSwitch").textContent = isSignup ? "Already have an account? Sign in" : "New to MRSmovies? Create account";
+  elements.authError.textContent = "";
+}
+
+function renderAccount() {
+  if (window.location.protocol === "file:") return;
+  elements.authButton.classList.remove("hidden");
+  elements.authButton.textContent = state.user ? state.user.name.split(" ")[0] : "Sign in";
+  elements.authButton.title = state.user ? "Account options" : "Sign in or create an account";
+}
+
+async function completeAuthentication(response) {
+  state.user = response.user;
+  state.watchlist = await webApi.get_watchlist();
+  elements.authDialog.close();
+  elements.authForm.reset();
+  renderAccount();
+  render();
+  showToast(`Signed in as ${state.user.name}`);
+}
+
+async function submitAuthentication(event) {
+  event.preventDefault();
+  const submitButton = document.querySelector("#authSubmit");
+  submitButton.disabled = true;
+  elements.authError.textContent = "";
+  try {
+    const mode = elements.authForm.dataset.mode;
+    const response = mode === "signup"
+      ? await webApi.signup(elements.authName.value, elements.authEmail.value, elements.authPassword.value)
+      : await webApi.login(elements.authEmail.value, elements.authPassword.value);
+    await completeAuthentication(response);
+  } catch (error) {
+    elements.authError.textContent = error.message;
+  } finally {
+    submitButton.disabled = false;
+  }
+}
+
+async function openAccount() {
+  if (!state.user) {
+    setAuthMode("login");
+    elements.authDialog.showModal();
+    elements.authEmail.focus();
+    return;
+  }
+
+  if (window.confirm(`Sign out of ${state.user.email}?`)) {
+    await webApi.logout();
+    state.user = null;
+    state.watchlist = await webApi.get_watchlist();
+    renderAccount();
+    render();
+    showToast("You are signed out");
+  }
 }
 
 // ---------- Theme ----------
@@ -492,6 +585,12 @@ function attachEvents() {
     }
   });
   elements.themeToggle.addEventListener("click", toggleTheme);
+  elements.authButton.addEventListener("click", openAccount);
+  elements.authForm.addEventListener("submit", submitAuthentication);
+  document.querySelector("#authSwitch").addEventListener("click", () => {
+    setAuthMode(elements.authForm.dataset.mode === "login" ? "signup" : "login");
+  });
+  document.querySelector("#authClose").addEventListener("click", () => elements.authDialog.close());
   elements.chatLauncher.addEventListener("click", () => setChatOpen(elements.chatPanel.classList.contains("hidden")));
   document.querySelector("#chatClose").addEventListener("click", () => setChatOpen(false));
   elements.chatForm.addEventListener("submit", (event) => {
@@ -558,6 +657,11 @@ function attachEvents() {
 // ---------- Application startup ----------
 async function startApp() {
   state.movies = await backendApi().get_movies();
+  if (window.location.protocol !== "file:") {
+    const account = await webApi.get_session();
+    state.user = account.user;
+    renderAccount();
+  }
   state.watchlist = await backendApi().get_watchlist();
 
   // Preload carousel images so automatic changes do not wait on the network.

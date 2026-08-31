@@ -27,8 +27,14 @@ python -m flask --app web_app:web_app run
 ```
 
 Open `http://127.0.0.1:5000` in a browser. The hosted version keeps each
-visitor's watchlist in browser storage while recommendations and MRS Chat Bot
-run through the Python API.
+guest's watchlist in browser storage. Signed-in users get a password-protected
+account and a personal watchlist stored by the Python backend.
+
+Set `MRS_SECRET_KEY` to a long random value outside development. User accounts
+use SQLite at `MRS_DATABASE_PATH` (or `mrsmovies.db` by default), so production
+hosting needs a persistent disk at that path. Serverless filesystems such as
+Vercel's are temporary; use Render with a persistent disk or migrate the store
+to a hosted database before relying on production account persistence.
 
 ## Deploy to Render
 
@@ -51,6 +57,7 @@ serverless function in `api/index.py`.
 
 - `app.py` starts the desktop window and exposes Python methods to JavaScript.
 - `web_app.py` exposes the same Python methods as HTTP endpoints for hosting.
+- `auth_store.py` hashes passwords and stores users and watchlists in SQLite.
 - `render.yaml` defines the Render web service.
 - `api/index.py` and `vercel.json` configure Vercel serverless hosting.
 - `movie_data.py` contains the movie catalog.
