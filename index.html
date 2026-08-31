@@ -17,7 +17,8 @@
       --line: #dedbd2;
       --accent: #d9492f;
       --accent-dark: #a72d1b;
-      --green: #19715b;
+      --green: #087b6b;
+      --blue: #315cce;
       --yellow: #f1bd50;
       --shadow: 0 18px 50px rgba(23, 25, 31, 0.12);
       --grid-line: rgba(23, 25, 31, 0.035);
@@ -35,6 +36,7 @@
       --accent: #ee6046;
       --accent-dark: #c9432d;
       --green: #54c5a5;
+      --blue: #7ba2ff;
       --yellow: #f3c969;
       --shadow: 0 18px 50px rgba(0, 0, 0, 0.32);
       --grid-line: rgba(255, 255, 255, 0.035);
@@ -76,6 +78,16 @@
       backdrop-filter: blur(16px);
     }
 
+    .topbar::before {
+      content: "";
+      position: absolute;
+      right: 0;
+      bottom: -1px;
+      left: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent) 0 36%, var(--yellow) 36% 58%, var(--green) 58% 82%, var(--blue) 82%);
+    }
+
     .brand {
       display: flex;
       align-items: center;
@@ -89,7 +101,7 @@
       display: block;
       width: 34px;
       height: 34px;
-      background: var(--accent);
+      background: linear-gradient(145deg, var(--accent), #ff8060);
       border-radius: 6px;
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
     }
@@ -212,6 +224,10 @@
       padding: clamp(34px, 6vw, 72px);
     }
 
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .hero .secondary { color: white; border-color: rgba(255, 255, 255, 0.45); background: rgba(12, 15, 20, 0.5); backdrop-filter: blur(10px); }
+    .hero .secondary:hover { border-color: white; background: rgba(12, 15, 20, 0.78); }
+
     .eyebrow { color: var(--yellow); font-size: 12px; font-weight: 700; text-transform: uppercase; }
     h1, h2, h3 { margin: 0; font-family: "Space Grotesk", sans-serif; letter-spacing: 0; }
     h1 { margin-top: 8px; font-size: clamp(36px, 6vw, 68px); line-height: 0.95; }
@@ -256,6 +272,26 @@
     .primary:hover { background: var(--accent-dark); }
     .secondary { padding: 10px 15px; color: var(--ink); border: 1px solid var(--line); background: var(--surface); }
 
+    .discovery-bar {
+      display: grid;
+      grid-template-columns: minmax(190px, 1fr) auto;
+      align-items: center;
+      gap: 18px;
+      margin: 24px 0 0;
+      padding: 0 2px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .discovery-status { display: flex; align-items: center; gap: 11px; min-width: 0; }
+    .pulse-mark { position: relative; width: 11px; height: 11px; flex: 0 0 auto; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 5px color-mix(in srgb, var(--green) 16%, transparent); }
+    .pulse-mark::after { content: ""; position: absolute; inset: -5px; border: 1px solid var(--green); border-radius: 50%; animation: pulse-ring 2.2s ease-out infinite; }
+    .discovery-status strong { display: block; font: 700 14px "Space Grotesk", sans-serif; }
+    .discovery-status span:last-child { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }
+    .quick-moods { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+    .quick-moods button { padding: 7px 10px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 12px; font-weight: 700; }
+    .quick-moods button:hover { color: var(--ink); border-color: var(--green); transform: translateY(-1px); }
+    .quick-moods button.active { color: white; border-color: var(--green); background: var(--green); }
+
     /* Discovery filters collapse from five columns on smaller screens. */
     .filters {
       display: grid;
@@ -284,17 +320,20 @@
       background: var(--surface);
       transition: transform 180ms ease, box-shadow 180ms ease;
       animation: reveal 420ms both;
+      border-top: 3px solid var(--card-accent);
     }
 
-    .movie-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
-    .poster-button { display: block; width: 100%; padding: 0; border: 0; background: #ddd; }
-    .poster { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; }
+    .movie-card:hover { transform: translateY(-6px); border-color: var(--card-accent); box-shadow: var(--shadow); }
+    .poster-button { display: block; width: 100%; padding: 0; overflow: hidden; border: 0; background: #ddd; }
+    .poster { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; transition: transform 420ms ease, filter 420ms ease; }
+    .movie-card:hover .poster { transform: scale(1.035); filter: saturate(1.1); }
     .card-body { padding: 14px; }
     .card-top { display: flex; align-items: start; justify-content: space-between; gap: 10px; }
     .card-title { font-size: 16px; line-height: 1.2; }
-    .rating { flex: 0 0 auto; color: #8a5a00; font-weight: 700; }
+    .rating { flex: 0 0 auto; padding: 3px 6px; color: #6c4900; border-radius: 4px; background: color-mix(in srgb, var(--yellow) 28%, transparent); font-size: 12px; font-weight: 700; }
+    :root[data-theme="dark"] .rating { color: var(--yellow); }
     .meta { margin: 7px 0; color: var(--muted); font-size: 13px; }
-    .tags { min-height: 25px; color: var(--green); font-size: 12px; font-weight: 700; }
+    .tags { min-height: 25px; color: var(--card-accent); font-size: 12px; font-weight: 700; }
     .card-actions { display: flex; gap: 8px; margin-top: 13px; padding-top: 12px; border-top: 1px solid var(--line); }
     .card-actions button { flex: 1; padding: 8px; }
     .saved { color: white; background: var(--green); border-color: var(--green); }
@@ -510,6 +549,7 @@
     @keyframes hero-fade { from { opacity: 0.35; transform: scale(1.015); } }
     @keyframes hero-content-in { from { opacity: 0; transform: translateY(8px); } }
     @keyframes hero-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    @keyframes pulse-ring { from { opacity: 0.8; transform: scale(0.65); } to { opacity: 0; transform: scale(1.35); } }
 
     /* Tablet layout reduces catalog columns and rearranges the header. */
     @media (max-width: 900px) {
@@ -518,6 +558,8 @@
       .nav { justify-self: end; }
       .movie-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .filters { grid-template-columns: repeat(2, 1fr); }
+      .discovery-bar { grid-template-columns: 1fr; }
+      .quick-moods { justify-content: flex-start; }
     }
 
     /* Mobile layout prioritizes touch targets and gives chat a full inset panel. */
@@ -539,6 +581,10 @@
       main { width: min(100% - 24px, 1180px); margin-top: 14px; }
       .hero { min-height: 360px; }
       .hero-content { padding: 30px 22px 90px; }
+      .discovery-bar { margin-top: 18px; }
+      .quick-moods { flex-wrap: nowrap; margin-right: -12px; padding: 2px 12px 4px 0; overflow-x: auto; scrollbar-width: none; }
+      .quick-moods::-webkit-scrollbar { display: none; }
+      .quick-moods button { flex: 0 0 auto; }
       .hero-navigation { right: 18px; bottom: 18px; }
       .section-heading { align-items: flex-start; flex-direction: column; gap: 6px; }
       .filters { grid-template-columns: 1fr 1fr; padding: 12px; }
@@ -595,7 +641,10 @@
         <span class="eyebrow">Featured recommendation</span>
         <h1 id="heroTitle">Loading movies...</h1>
         <p id="heroOverview"></p>
-        <button id="heroDetails" class="primary">View details</button>
+        <div class="hero-actions">
+          <button id="heroDetails" class="primary">View details</button>
+          <button id="surpriseButton" class="secondary">Surprise me</button>
+        </div>
       </div>
       <div class="hero-navigation" aria-label="Featured recommendations">
         <button id="heroPrevious" class="hero-nav-button" aria-label="Previous featured movie" title="Previous movie">←</button>
@@ -605,12 +654,21 @@
       <div class="hero-progress" aria-hidden="true"></div>
     </section>
 
+    <!-- Live catalog context and data-driven mood shortcuts. -->
+    <section class="discovery-bar" aria-label="Quick discovery">
+      <div class="discovery-status">
+        <span class="pulse-mark" aria-hidden="true"></span>
+        <div><strong id="activeFilterCount">All stories</strong><span id="discoveryPulse">Building today's lineup...</span></div>
+      </div>
+      <div id="quickMoods" class="quick-moods" aria-label="Popular moods"></div>
+    </section>
+
     <!-- Controls used by currentMovies() to filter and sort the catalog. -->
     <section id="filterPanel" class="filters" aria-label="Movie filters">
       <select id="typeFilter" aria-label="Type"><option value="All">All types</option><option>Movie</option><option>Series</option></select>
       <select id="genreFilter" aria-label="Genre"><option value="All">All genres</option></select>
       <select id="moodFilter" aria-label="Mood"><option value="All">All moods</option></select>
-      <select id="sortFilter" aria-label="Sort"><option value="match">Best match</option><option value="rating">Highest rated</option><option value="year">Newest</option></select>
+      <select id="sortFilter" aria-label="Sort"><option value="year">Newest releases</option><option value="rating">Highest rated</option><option value="match">Best match</option></select>
       <button id="resetFilters" class="secondary">Reset</button>
     </section>
 
@@ -624,7 +682,7 @@
 
     <!-- JavaScript renders movie cards, empty state, and pagination below. -->
     <div class="section-heading">
-      <div><h2 id="sectionTitle">Recommended for you</h2><p id="sectionSubtitle">Browse the complete catalog.</p></div>
+      <div><h2 id="sectionTitle">Latest releases</h2><p id="sectionSubtitle">Fresh additions from the current movie year.</p></div>
       <span id="resultCount" class="count"></span>
     </div>
     <section id="movieGrid" class="movie-grid" aria-live="polite"></section>

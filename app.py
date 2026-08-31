@@ -11,6 +11,7 @@ import urllib.parse
 import urllib.request
 import webbrowser
 from collections import Counter
+from datetime import datetime, timezone
 from pathlib import Path
 
 from movie_data import MOVIES
@@ -46,15 +47,23 @@ class MovieApi:
         return MOVIES
 
     def discover_movies(self, skip=0):
-        """Return the next page of movies from Cinemeta's public catalog."""
+        """Return recent movies from Cinemeta's current-year public catalog."""
         safe_skip = max(0, int(skip))
-        url = f"https://v3-cinemeta.strem.io/catalog/movie/top/skip={safe_skip}.json"
-        request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        current_year = datetime.now(timezone.utc).year
+        results = []
+        for release_year in (current_year, current_year - 1):
+            extras = f"genre={release_year}&skip={safe_skip}"
+            url = f"https://v3-cinemeta.strem.io/catalog/movie/year/{extras}.json"
+            catalog_request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            try:
+                with urllib.request.urlopen(catalog_request, timeout=12) as response:
+                    results = json.load(response).get("metas", [])
+            except (OSError, urllib.error.URLError, json.JSONDecodeError, ValueError):
+                continue
+            if results:
+                break
 
-        try:
-            with urllib.request.urlopen(request, timeout=12) as response:
-                results = json.load(response).get("metas", [])
-        except (OSError, urllib.error.URLError, json.JSONDecodeError, ValueError):
+        if not results:
             return []
 
         movies = []
@@ -69,8 +78,12 @@ class MovieApi:
             except (TypeError, ValueError):
                 rating = 0
 
-            year_text = str(item.get("year") or item.get("releaseInfo") or "Unknown")
-            year = int(year_text[:4]) if year_text[:4].isdigit() else "Unknown"
+            year_text = str(item.get("year") or item.get("releaseInfo") or "")
+            if not year_text[:4].isdigit():
+                continue
+            year = int(year_text[:4])
+            if year < current_year - 1:
+                continue
             directors = item.get("director") or []
             if isinstance(directors, str):
                 directors = [directors]

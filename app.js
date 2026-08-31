@@ -55,6 +55,9 @@ const elements = {
   authEmail: document.querySelector("#authEmail"),
   authPassword: document.querySelector("#authPassword"),
   authError: document.querySelector("#authError"),
+  quickMoods: document.querySelector("#quickMoods"),
+  discoveryPulse: document.querySelector("#discoveryPulse"),
+  activeFilterCount: document.querySelector("#activeFilterCount"),
 };
 
 // Hosted browsers call Flask; the desktop build uses Python through PyWebView.
@@ -235,6 +238,36 @@ function showToast(message) {
   showToast.timer = window.setTimeout(() => elements.toast.classList.add("hidden"), 2200);
 }
 
+function genreColor(movie) {
+  const colors = {
+    Action: "#ff5b43",
+    Adventure: "#f1bd50",
+    Animation: "#5d8cff",
+    Comedy: "#55c59f",
+    Crime: "#d16d91",
+    Drama: "#c18cff",
+    Horror: "#98a0ad",
+    "Sci-Fi": "#42b9c5",
+    Thriller: "#ff8a4c",
+  };
+  return colors[movie.genres[0]] || "#55c59f";
+}
+
+function updateDiscoveryPulse(movies) {
+  const activeFilters = [elements.type, elements.genre, elements.mood]
+    .filter((control) => control.value !== "All").length;
+  const averageRating = movies.length
+    ? movies.reduce((total, movie) => total + Number(movie.rating || 0), 0) / movies.length
+    : 0;
+  elements.discoveryPulse.textContent = movies.length
+    ? `${movies.length} picks · ${averageRating.toFixed(1)} average rating`
+    : "Ready for a new direction";
+  elements.activeFilterCount.textContent = activeFilters ? `${activeFilters} active` : "All stories";
+  elements.quickMoods.querySelectorAll("button").forEach((button) => {
+    button.classList.toggle("active", elements.mood.value === button.dataset.quickMood);
+  });
+}
+
 // ---------- Catalog filtering and rendering ----------
 function allKnownMovies() {
   return [...state.movies, ...state.discoverMovies, ...state.onlineMovies].filter(
@@ -286,7 +319,7 @@ function movieCard(movie, index) {
     : `<button class="secondary ${saved ? "saved" : ""}" data-watchlist="${movie.id}">${saved ? "Saved" : "Add"}</button>`;
 
   return `
-    <article class="movie-card" style="animation-delay: ${Math.min(index * 45, 300)}ms">
+    <article class="movie-card" style="--card-accent: ${genreColor(movie)}; animation-delay: ${Math.min(index * 45, 300)}ms">
       <button class="poster-button" data-details="${movie.id}" aria-label="View ${escapeHtml(movie.title)} details">
         <img class="poster" src="${escapeHtml(movie.poster)}" alt="${escapeHtml(movie.title)} poster">
       </button>
@@ -307,6 +340,7 @@ function movieCard(movie, index) {
 
 function render() {
   const movies = currentMovies();
+  updateDiscoveryPulse(movies);
   const query = elements.search.value.trim();
   elements.grid.innerHTML = movies.map(movieCard).join("");
   elements.grid.classList.toggle("hidden", movies.length === 0);
@@ -325,10 +359,10 @@ function render() {
     elements.title.textContent = "Your closest matches";
     elements.subtitle.textContent = "Ranked by the Python recommendation engine.";
   } else {
-    elements.title.textContent = query ? `Search results for "${query}"` : "Recommended for you";
+    elements.title.textContent = query ? `Search results for "${query}"` : "Latest releases";
     elements.subtitle.textContent = state.isSearchingOnline
       ? "Searching the online movie catalog..."
-      : query ? "Matching local and online titles." : "Browse the complete catalog.";
+      : query ? "Matching local and online titles." : "Fresh additions from the current movie year.";
   }
 }
 
@@ -598,6 +632,20 @@ function attachEvents() {
     }
   });
   elements.themeToggle.addEventListener("click", toggleTheme);
+  elements.quickMoods.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-quick-mood]");
+    if (!button) return;
+    elements.mood.value = elements.mood.value === button.dataset.quickMood ? "All" : button.dataset.quickMood;
+    state.currentPage = 1;
+    changeView("discover");
+  });
+  document.querySelector("#surpriseButton").addEventListener("click", () => {
+    const movies = currentMovies().length ? currentMovies() : state.movies;
+    if (!movies.length) return;
+    const randomValues = new Uint32Array(1);
+    crypto.getRandomValues(randomValues);
+    showMovie(movies[randomValues[0] % movies.length].id);
+  });
   elements.authButton.addEventListener("click", openAccount);
   elements.authForm.addEventListener("submit", submitAuthentication);
   document.querySelector("#authSwitch").addEventListener("click", () => {
@@ -625,7 +673,7 @@ function attachEvents() {
     elements.type.value = "All";
     elements.genre.value = "All";
     elements.mood.value = "All";
-    elements.sort.value = "match";
+    elements.sort.value = "year";
     state.currentPage = 1;
     render();
   });
@@ -687,6 +735,14 @@ async function startApp() {
   const moods = [...new Set(state.movies.flatMap((movie) => movie.moods))].sort();
   fillSelect(elements.genre, genres);
   fillSelect(elements.mood, moods);
+  const popularMoods = [...state.movies.flatMap((movie) => movie.moods)
+    .reduce((counts, mood) => counts.set(mood, (counts.get(mood) || 0) + 1), new Map())]
+    .sort((first, second) => second[1] - first[1])
+    .slice(0, 5)
+    .map(([mood]) => mood);
+  elements.quickMoods.innerHTML = popularMoods.map((mood) => (
+    `<button type="button" data-quick-mood="${escapeHtml(mood)}">${escapeHtml(mood)}</button>`
+  )).join("");
   fillSelect(elements.favoriteMovie, state.movies.map((movie) => movie.title));
   [...elements.favoriteMovie.options].forEach((option, index) => { option.value = state.movies[index].id; });
 
