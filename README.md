@@ -1,7 +1,7 @@
 # MRSmovies
 
-A beginner-friendly desktop movie recommendation system built with Python,
-HTML, CSS, and vanilla JavaScript.
+A movie recommendation system built with Python, Flask, PyWebView, HTML, CSS,
+and vanilla JavaScript. It runs as a desktop application or a hosted website.
 
 ## Run the app
 
@@ -18,9 +18,30 @@ HTML, CSS, and vanilla JavaScript.
    python app.py
    ```
 
+## Run the website locally
+
+```powershell
+python -m flask --app web_app:web_app run
+```
+
+Open `http://127.0.0.1:5000` in a browser. The hosted version keeps each
+visitor's watchlist in browser storage while recommendations and MRS Chat Bot
+run through the Python API.
+
+## Deploy to Render
+
+1. Push this repository to GitHub.
+2. In Render, select **New > Blueprint**.
+3. Connect this repository and apply the included `render.yaml` blueprint.
+
+Render installs the Python dependencies and starts the Flask application with
+Gunicorn. Free services may pause after a period without traffic.
+
 ## Project files
 
 - `app.py` starts the desktop window and exposes Python methods to JavaScript.
+- `web_app.py` exposes the same Python methods as HTTP endpoints for hosting.
+- `render.yaml` defines the Render web service.
 - `movie_data.py` contains the movie catalog.
 - `index.html` contains the page structure and styling.
 - `app.js` handles filters, dialogs, recommendations, and the watchlist.

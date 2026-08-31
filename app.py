@@ -5,6 +5,7 @@ interface shown inside the PyWebView desktop window.
 """
 
 import json
+import re
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -19,9 +20,28 @@ WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 
 
 class MovieApi:
-    """Methods in this class can be called from JavaScript."""
+    """Backend methods exposed to JavaScript through the PyWebView bridge."""
+
+    # Words that do not help identify a genre, mood, title, or theme.
+    CHAT_STOP_WORDS = {
+        "a", "about", "an", "and", "are", "can", "for", "i", "in", "is",
+        "it", "me", "movie", "movies", "of", "on", "please", "recommend",
+        "show", "something", "that", "the", "to", "want", "watch", "with",
+    }
+    # Translate everyday language into the vocabulary used by the movie data.
+    CHAT_ALIASES = {
+        "clever": "mind-bending",
+        "exciting": "action",
+        "fun": "comedy",
+        "funny": "comedy",
+        "romantic": "romance",
+        "sad": "emotional",
+        "scary": "horror",
+        "space": "sci-fi",
+    }
 
     def get_movies(self):
+        """Return the built-in catalog used for filters and recommendations."""
         return MOVIES
 
     def discover_movies(self, skip=0):
@@ -122,12 +142,14 @@ class MovieApi:
         return movies
 
     def open_url(self, url):
+        """Open only trusted IMDb title links in the system browser."""
         if url.startswith("https://www.imdb.com/title/"):
             webbrowser.open(url)
             return True
         return False
 
     def get_watchlist(self):
+        """Load saved movie IDs, returning an empty list for missing/bad data."""
         if not WATCHLIST_FILE.exists():
             return []
 
@@ -137,6 +159,7 @@ class MovieApi:
             return []
 
     def toggle_watchlist(self, movie_id):
+        """Add or remove one movie ID and persist the updated watchlist."""
         watchlist = self.get_watchlist()
 
         if movie_id in watchlist:
@@ -148,6 +171,7 @@ class MovieApi:
         return watchlist
 
     def recommend(self, movie_id):
+        """Rank local movies by shared genres, moods, and rating."""
         selected = next((movie for movie in MOVIES if movie["id"] == movie_id), None)
         if selected is None:
             return []
@@ -170,8 +194,84 @@ class MovieApi:
         scored_movies.sort(key=lambda movie: movie["match_score"], reverse=True)
         return scored_movies[:5]
 
+    def chat(self, message):
+        """Answer natural-language movie questions using the local catalog."""
+        # Normalize whitespace and casing so matching behaves consistently.
+        clean_message = " ".join(str(message).strip().split())
+        if not clean_message:
+            return {"message": "Tell me what you feel like watching.", "movie_ids": []}
+
+        normalized = clean_message.casefold()
+        if re.search(r"\b(hello|hey|hi)\b", normalized):
+            return {
+                "message": "Hi, I'm MRS Chat Bot! Tell me a genre, mood, or movie you already enjoy, and I'll find a match.",
+                "movie_ids": [],
+            }
+
+        # "Movies like..." requests reuse the main genre-and-mood recommender.
+        mentioned_movie = next(
+            (movie for movie in MOVIES if movie["title"].casefold() in normalized),
+            None,
+        )
+        if mentioned_movie and re.search(r"\b(like|similar|another|more)\b", normalized):
+            matches = self.recommend(mentioned_movie["id"])[:3]
+            titles = ", ".join(movie["title"] for movie in matches)
+            return {
+                "message": f"Because you liked {mentioned_movie['title']}, try {titles}. They share its strongest genres and moods.",
+                "movie_ids": [movie["id"] for movie in matches],
+            }
+
+        # Restrict results when the user explicitly asks for a movie or series.
+        requested_type = None
+        if re.search(r"\b(series|show|shows|tv)\b", normalized):
+            requested_type = "Series"
+        elif re.search(r"\b(film|films|movie|movies)\b", normalized):
+            requested_type = "Movie"
+
+        # Remove filler words and translate common phrases into catalog tags.
+        query_words = {
+            word for word in re.findall(r"[a-z0-9]+", normalized)
+            if len(word) > 2 and word not in self.CHAT_STOP_WORDS
+        }
+        query_words.update(
+            alias for word, alias in self.CHAT_ALIASES.items() if word in query_words
+        )
+        # Exact genre/mood matches carry more weight than general text matches.
+        ranked_movies = []
+        for movie in MOVIES:
+            if requested_type and movie["type"] != requested_type:
+                continue
+
+            tags = movie["genres"] + movie["moods"]
+            searchable = " ".join([
+                movie["title"], movie["director"], movie["overview"], *tags,
+            ]).casefold()
+            exact_tags = [tag for tag in tags if tag.casefold() in normalized]
+            word_matches = sum(word in searchable for word in query_words)
+            score = len(exact_tags) * 12 + word_matches * 3 + movie["rating"] / 10
+            if score > 1:
+                ranked_movies.append((score, movie, exact_tags))
+
+        ranked_movies.sort(key=lambda item: item[0], reverse=True)
+        matches = ranked_movies[:3]
+        if not matches:
+            return {
+                "message": "I couldn't find a close catalog match. Try a mood like emotional or mind-bending, a genre like comedy, or say 'movies like Inception'.",
+                "movie_ids": [],
+            }
+
+        # Return IDs separately so JavaScript can build clickable movie cards.
+        titles = ", ".join(movie["title"] for _, movie, _ in matches)
+        matched_tags = sorted({tag for _, _, tags in matches for tag in tags})
+        reason = f" for {', '.join(matched_tags)}" if matched_tags else " based on your request"
+        return {
+            "message": f"I'd pick {titles}{reason}. Open a suggestion below to see its details.",
+            "movie_ids": [movie["id"] for _, movie, _ in matches],
+        }
+
 
 def main():
+    """Create the desktop window and connect its JavaScript API to MovieApi."""
     try:
         import webview
     except ImportError:

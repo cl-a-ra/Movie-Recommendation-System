@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
+    /* Theme tokens keep colors consistent across light and dark modes. */
     :root {
       --ink: #17191f;
       --muted: #656873;
@@ -41,6 +42,7 @@
       --panel: rgba(28, 31, 38, 0.78);
     }
 
+    /* Global defaults make element sizing and typography predictable. */
     * { box-sizing: border-box; }
 
     body {
@@ -59,6 +61,7 @@
     button { cursor: pointer; }
     img { display: block; max-width: 100%; }
 
+    /* Sticky application header: brand, search, navigation, and theme toggle. */
     .topbar {
       position: sticky;
       top: 0;
@@ -174,6 +177,7 @@
 
     main { width: min(1180px, calc(100% - 36px)); margin: 28px auto 64px; }
 
+    /* Featured movie carousel with automatic progress and manual controls. */
     .hero {
       position: relative;
       min-height: 330px;
@@ -186,6 +190,8 @@
 
     .hero img { position: absolute; width: 100%; height: 100%; object-fit: cover; }
     .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(14, 16, 20, 0.94), rgba(14, 16, 20, 0.3)); }
+    .hero-changing img { animation: hero-fade 500ms both; }
+    .hero-changing .hero-content { animation: hero-content-in 420ms both; }
 
     .hero-content {
       position: relative;
@@ -199,6 +205,35 @@
     h1 { margin-top: 8px; font-size: clamp(36px, 6vw, 68px); line-height: 0.95; }
     .hero p { max-width: 530px; margin: 18px 0 24px; color: #e8e6df; line-height: 1.6; }
 
+    .hero-navigation {
+      position: absolute;
+      z-index: 2;
+      right: 24px;
+      bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hero-nav-button {
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      border-radius: 50%;
+      background: rgba(10, 12, 16, 0.7);
+      font-size: 18px;
+    }
+
+    .hero-nav-button:hover { border-color: white; background: var(--accent); }
+    .hero-dots { display: flex; gap: 6px; }
+    .hero-dot { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.45); }
+    .hero-dot.active { width: 22px; border-radius: 5px; background: var(--accent); }
+    .hero-progress { position: absolute; z-index: 2; left: 0; bottom: 0; width: 100%; height: 3px; overflow: hidden; background: rgba(255, 255, 255, 0.15); }
+    .hero-progress::after { content: ""; display: block; width: 100%; height: 100%; background: var(--accent); transform-origin: left; }
+    .hero-changing .hero-progress::after { animation: hero-progress 4s linear both; }
+
     .primary, .secondary, .icon-button {
       border: 0;
       border-radius: 5px;
@@ -209,6 +244,7 @@
     .primary:hover { background: var(--accent-dark); }
     .secondary { padding: 10px 15px; color: var(--ink); border: 1px solid var(--line); background: var(--surface); }
 
+    /* Discovery filters collapse from five columns on smaller screens. */
     .filters {
       display: grid;
       grid-template-columns: repeat(4, 1fr) auto;
@@ -225,6 +261,7 @@
     .section-heading p { margin: 4px 0 0; color: var(--muted); }
     .count { color: var(--green); font-size: 13px; font-weight: 700; }
 
+    /* Responsive catalog grid and reusable movie card presentation. */
     .movie-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
 
     .movie-card {
@@ -253,6 +290,7 @@
     .empty { padding: 70px 20px; text-align: center; border: 1px dashed #aaa69c; color: var(--muted); background: rgba(255, 255, 255, 0.5); }
     .hidden { display: none !important; }
 
+    /* Page controls request additional catalog movies only when needed. */
     .pagination {
       display: flex;
       min-height: 110px;
@@ -298,6 +336,7 @@
     .footer strong { color: var(--ink); }
     .footer-meta { display: flex; gap: 18px; }
 
+    /* Modal containing the selected movie's full metadata and primary action. */
     dialog {
       width: min(760px, calc(100% - 28px));
       max-height: 88vh;
@@ -329,8 +368,123 @@
 
     .toast { position: fixed; right: 22px; bottom: 22px; z-index: 50; padding: 12px 16px; color: white; border-radius: 5px; background: var(--ink); box-shadow: var(--shadow); }
 
-    @keyframes reveal { from { opacity: 0; transform: translateY(10px); } }
+    /* Floating entry point for opening the movie assistant. */
+    .chat-launcher {
+      position: fixed;
+      right: 35px;
+      top: auto;
+      bottom: 96px;
+      z-index: 45;
+      display: grid;
+      width: 48px;
+      height: 48px;
+      padding: 0;
+      place-items: center;
+      color: white;
+      border: 0;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: var(--shadow);
+    }
 
+    .chat-launcher:hover { background: var(--accent-dark); transform: translateY(-2px); }
+    .chat-launcher[aria-expanded="true"] { display: none; }
+
+    .chat-launcher-icon {
+      position: relative;
+      display: block;
+      width: 23px;
+      height: 18px;
+      border: 2px solid white;
+      border-radius: 6px;
+    }
+
+    .chat-launcher-icon::before {
+      content: "···";
+      position: absolute;
+      inset: -7px 0 0;
+      color: white;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+
+    .chat-launcher-icon::after {
+      content: "";
+      position: absolute;
+      right: 3px;
+      bottom: -6px;
+      width: 7px;
+      height: 7px;
+      border-right: 2px solid white;
+      border-bottom: 2px solid white;
+      background: var(--accent);
+      transform: skewY(35deg);
+    }
+
+    .chat-launcher:hover .chat-launcher-icon::after { background: var(--accent-dark); }
+
+    /* Three fixed rows keep the header and composer visible while messages scroll. */
+    .chat-panel {
+      position: fixed;
+      right: 35px;
+      top: auto;
+      bottom: 96px;
+      z-index: 45;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      width: min(400px, calc(100vw - 28px));
+      height: min(520px, calc(100vh - 116px));
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: 0 24px 70px rgba(20, 20, 20, 0.28);
+    }
+
+    .chat-header { display: flex; align-items: center; gap: 11px; padding: 14px 16px; color: white; background: var(--ink); }
+    :root[data-theme="dark"] .chat-header { color: white; background: #0d0f13; }
+    .chat-avatar { display: grid; width: 38px; height: 38px; flex: 0 0 auto; place-items: center; border-radius: 50%; color: white; background: var(--accent); font: 700 18px "Space Grotesk", sans-serif; }
+    .chat-identity { min-width: 0; flex: 1; }
+    .chat-heading { display: block; font: 700 16px "Space Grotesk", sans-serif; }
+    .chat-status { display: flex; align-items: center; gap: 5px; margin-top: 2px; color: #c8ccd3; font-size: 11px; }
+    .chat-status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #54c5a5; }
+    .chat-close { width: 34px; height: 34px; padding: 0; color: white; border: 0; border-radius: 50%; background: rgba(255,255,255,.08); font-size: 18px; }
+    .chat-messages { overflow-y: auto; padding: 18px 16px; background: var(--paper); }
+    .chat-welcome { margin-bottom: 16px; }
+    .chat-welcome-label { display: block; margin-bottom: 5px; color: var(--accent); font: 700 12px "Space Grotesk", sans-serif; text-transform: uppercase; }
+    .chat-welcome h3 { font-size: 22px; }
+    .chat-welcome p { margin: 6px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .chat-message { width: fit-content; max-width: 88%; margin: 0 0 12px; padding: 10px 12px; border-radius: 6px; line-height: 1.45; font-size: 14px; }
+    .chat-message.assistant { position: relative; margin-left: 29px; border: 1px solid var(--line); background: var(--surface); }
+    .chat-message.assistant::before { content: "M"; position: absolute; left: -30px; bottom: 0; display: grid; width: 22px; height: 22px; place-items: center; color: white; border-radius: 50%; background: var(--accent); font: 700 10px "Space Grotesk", sans-serif; }
+    .chat-message.user { margin-left: auto; color: white; background: var(--green); }
+    .chat-message.pending { color: var(--muted); }
+    /* Python-selected movies are shown as compact, clickable result rows. */
+    .chat-suggestions { display: grid; gap: 7px; margin: -4px 0 14px 29px; }
+    .chat-suggestion { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 6px; color: var(--ink); text-align: left; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+    .chat-suggestion:hover { border-color: var(--accent); }
+    .chat-suggestion img { width: 38px; height: 48px; border-radius: 3px; object-fit: cover; }
+    .chat-suggestion strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+    .chat-suggestion small { color: var(--muted); font-size: 11px; }
+    .chat-suggestion-arrow { padding-right: 5px; color: var(--accent); font-size: 18px; }
+    .chat-prompts { display: grid; gap: 7px; margin-bottom: 14px; }
+    .chat-prompt { padding: 9px 11px; color: var(--ink); text-align: left; border: 1px solid var(--line); border-radius: 5px; background: var(--surface); font-size: 12px; font-weight: 700; }
+    .chat-prompt::after { content: ">"; float: right; color: var(--accent); }
+    .chat-prompt:hover { border-color: var(--accent); }
+    .chat-form { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--line); background: var(--surface); }
+    .chat-input { min-width: 0; flex: 1; padding: 10px 11px; color: var(--ink); border: 0; outline: none; background: transparent; }
+    .chat-input:focus { border-color: var(--accent); }
+    .chat-send { width: 40px; height: 40px; flex: 0 0 auto; padding: 0; border-radius: 50%; font-size: 19px; }
+
+    /* Motion is limited to card entry and featured-movie transitions. */
+    @keyframes reveal { from { opacity: 0; transform: translateY(10px); } }
+    @keyframes hero-fade { from { opacity: 0.35; transform: scale(1.015); } }
+    @keyframes hero-content-in { from { opacity: 0; transform: translateY(8px); } }
+    @keyframes hero-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+    /* Tablet layout reduces catalog columns and rearranges the header. */
     @media (max-width: 900px) {
       .topbar { grid-template-columns: 1fr auto; gap: 12px; }
       .search-form { grid-column: 1 / -1; grid-row: 2; }
@@ -339,6 +493,7 @@
       .filters { grid-template-columns: repeat(2, 1fr); }
     }
 
+    /* Mobile layout prioritizes touch targets and gives chat a full inset panel. */
     @media (max-width: 620px) {
       .topbar { grid-template-columns: 1fr; padding: 10px 12px; }
       .brand { grid-row: 1; }
@@ -356,7 +511,8 @@
       .search-button { padding: 0 13px; }
       main { width: min(100% - 24px, 1180px); margin-top: 14px; }
       .hero { min-height: 360px; }
-      .hero-content { padding: 30px 22px; }
+      .hero-content { padding: 30px 22px 90px; }
+      .hero-navigation { right: 18px; bottom: 18px; }
       .section-heading { align-items: flex-start; flex-direction: column; gap: 6px; }
       .filters { grid-template-columns: 1fr 1fr; padding: 12px; }
       .filters .secondary { grid-column: 1 / -1; }
@@ -370,6 +526,8 @@
       .dialog-hero { height: 190px; }
       .dialog-body { padding: 18px; }
       .toast { left: 12px; right: 12px; bottom: 12px; text-align: center; }
+      .chat-launcher { top: auto; right: 20px; bottom: 76px; }
+      .chat-panel { inset: 12px; width: auto; height: auto; }
       .footer-inner, .footer-meta { align-items: flex-start; flex-direction: column; gap: 7px; }
     }
 
@@ -386,6 +544,7 @@
   </style>
 </head>
 <body>
+  <!-- Sticky header with global search and the three main application views. -->
   <header class="topbar">
     <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span>MRSmovies</span></div>
     <form id="searchForm" class="search-form" role="search">
@@ -396,11 +555,12 @@
       <button class="active" data-view="discover">Discover</button>
       <button data-view="recommended">For You</button>
       <button data-view="watchlist">Watchlist <span id="watchlistCount">0</span></button>
-      <button id="themeToggle" class="theme-toggle" aria-label="Enable dark mode" title="Enable dark mode">&#9790;</button>
+      <button id="themeToggle" class="theme-toggle" aria-label="Enable dark mode" title="Enable dark mode">☾</button>
     </nav>
   </header>
 
   <main>
+    <!-- Rotating featured area; JavaScript supplies movie content and indicators. -->
     <section id="hero" class="hero">
       <img id="heroImage" alt="Featured movie backdrop">
       <div class="hero-content">
@@ -409,8 +569,15 @@
         <p id="heroOverview"></p>
         <button id="heroDetails" class="primary">View details</button>
       </div>
+      <div class="hero-navigation" aria-label="Featured recommendations">
+        <button id="heroPrevious" class="hero-nav-button" aria-label="Previous featured movie" title="Previous movie">←</button>
+        <div id="heroDots" class="hero-dots"></div>
+        <button id="heroNext" class="hero-nav-button" aria-label="Next featured movie" title="Next movie">→</button>
+      </div>
+      <div class="hero-progress" aria-hidden="true"></div>
     </section>
 
+    <!-- Controls used by currentMovies() to filter and sort the catalog. -->
     <section id="filterPanel" class="filters" aria-label="Movie filters">
       <select id="typeFilter" aria-label="Type"><option value="All">All types</option><option>Movie</option><option>Series</option></select>
       <select id="genreFilter" aria-label="Genre"><option value="All">All genres</option></select>
@@ -419,6 +586,7 @@
       <button id="resetFilters" class="secondary">Reset</button>
     </section>
 
+    <!-- Similar-movie mode sends the selected ID to Python's recommender. -->
     <section id="recommendationPanel" class="recommendations hidden">
       <h2>Pick a movie you enjoyed</h2>
       <p class="recommendation-copy">Python compares genres and moods, then ranks the closest matches.</p>
@@ -426,6 +594,7 @@
       <button id="recommendButton" class="primary" style="margin-top: 10px;">Find similar movies</button>
     </section>
 
+    <!-- JavaScript renders movie cards, empty state, and pagination below. -->
     <div class="section-heading">
       <div><h2 id="sectionTitle">Recommended for you</h2><p id="sectionSubtitle">Browse the complete catalog.</p></div>
       <span id="resultCount" class="count"></span>
@@ -435,15 +604,17 @@
     <nav id="pagination" class="pagination" aria-label="Discover pages"></nav>
   </main>
 
+  <!-- Data attribution and automatically updated copyright year. -->
   <footer class="footer">
     <div class="footer-inner">
-      <span><strong>MRSmovies</strong> &copy; <span id="footerYear"></span></span>
+      <span><strong>MRSmovies</strong> © <span id="footerYear"></span></span>
       <div class="footer-meta">
         <span>Movie data: Cinemeta and IMDb</span>
       </div>
     </div>
   </footer>
 
+  <!-- Reusable details dialog populated whenever a movie card is opened. -->
   <dialog id="movieDialog">
     <div class="dialog-hero">
       <img id="dialogImage" alt="">
@@ -464,6 +635,31 @@
   </dialog>
 
   <div id="toast" class="toast hidden" role="status"></div>
+  <!-- MRS Chat Bot: Python chooses recommendations; JavaScript renders the conversation. -->
+  <button id="chatLauncher" class="chat-launcher" aria-label="Open MRS Chat Bot" aria-expanded="false" title="MRS Chat Bot"><span class="chat-launcher-icon" aria-hidden="true"></span></button>
+  <section id="chatPanel" class="chat-panel hidden" aria-label="MRS Chat Bot">
+    <header class="chat-header">
+      <span class="chat-avatar" aria-hidden="true">M</span>
+      <div class="chat-identity"><span class="chat-heading">MRS Chat Bot</span><span class="chat-status">Online</span></div>
+      <button id="chatClose" class="chat-close" aria-label="Close MRS Chat Bot">X</button>
+    </header>
+    <div id="chatMessages" class="chat-messages" aria-live="polite">
+      <div class="chat-welcome">
+        <span class="chat-welcome-label">Your movie guide</span>
+        <h3>What should we watch?</h3>
+        <p>Choose a starting point or describe the kind of story you want.</p>
+      </div>
+      <div id="chatPrompts" class="chat-prompts">
+        <button class="chat-prompt" data-prompt="I want an emotional sci-fi movie">Emotional sci-fi</button>
+        <button class="chat-prompt" data-prompt="Show me movies like Inception">Like Inception</button>
+        <button class="chat-prompt" data-prompt="Recommend something funny">Something funny</button>
+      </div>
+    </div>
+    <form id="chatForm" class="chat-form">
+      <input id="chatInput" class="chat-input" maxlength="300" autocomplete="off" placeholder="Message MRS Chat Bot..." aria-label="Message MRS Chat Bot">
+      <button id="chatSend" class="primary chat-send" type="submit" aria-label="Send message">↑</button>
+    </form>
+  </section>
   <script src="app.js"></script>
 </body>
 </html>

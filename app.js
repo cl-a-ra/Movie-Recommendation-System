@@ -1,3 +1,4 @@
+// Central application state shared by rendering and event handlers.
 const state = {
   movies: [],
   discoverMovies: [],
@@ -11,9 +12,13 @@ const state = {
   recommendations: [],
   onlineMovies: [],
   isSearchingOnline: false,
+  searchRequestId: 0,
   selectedMovie: null,
+  featuredIndex: 0,
+  featuredTimer: null,
 };
 
+// Cache frequently used DOM elements so functions do not repeatedly query them.
 const elements = {
   search: document.querySelector("#searchInput"),
   searchForm: document.querySelector("#searchForm"),
@@ -35,12 +40,62 @@ const elements = {
   toast: document.querySelector("#toast"),
   themeToggle: document.querySelector("#themeToggle"),
   pagination: document.querySelector("#pagination"),
+  chatLauncher: document.querySelector("#chatLauncher"),
+  chatPanel: document.querySelector("#chatPanel"),
+  chatMessages: document.querySelector("#chatMessages"),
+  chatForm: document.querySelector("#chatForm"),
+  chatInput: document.querySelector("#chatInput"),
+  chatSend: document.querySelector("#chatSend"),
 };
 
+// Hosted browsers call Flask; the desktop build uses Python through PyWebView.
+async function fetchJson(url, options) {
+  const response = await fetch(url, options);
+  if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
+  return response.json();
+}
+
+const webApi = {
+  get_movies: () => fetchJson("/api/movies"),
+  discover_movies: (skip) => fetchJson(`/api/discover?skip=${encodeURIComponent(skip)}`),
+  search_movies: (query) => fetchJson(`/api/search?q=${encodeURIComponent(query)}`),
+  recommend: (movieId) => fetchJson(`/api/recommend/${encodeURIComponent(movieId)}`),
+  chat: (message) => fetchJson("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message }),
+  }),
+  get_watchlist: async () => {
+    try {
+      return JSON.parse(localStorage.getItem("mrsmovies_watchlist") || "[]");
+    } catch (error) {
+      return [];
+    }
+  },
+  toggle_watchlist: async (movieId) => {
+    const watchlist = await webApi.get_watchlist();
+    const updated = watchlist.includes(movieId)
+      ? watchlist.filter((id) => id !== movieId)
+      : [...watchlist, movieId];
+    localStorage.setItem("mrsmovies_watchlist", JSON.stringify(updated));
+    return updated;
+  },
+  open_url: async (url) => {
+    if (!url.startsWith("https://www.imdb.com/title/")) return false;
+    window.open(url, "_blank", "noopener");
+    return true;
+  },
+};
+
+function backendApi() {
+  return window.pywebview?.api || webApi;
+}
+
+// ---------- Theme ----------
 function setTheme(theme) {
   const isDark = theme === "dark";
   document.documentElement.dataset.theme = theme;
-  elements.themeToggle.innerHTML = isDark ? "&#9788;" : "&#9790;";
+  elements.themeToggle.textContent = isDark ? "☼" : "☾";
   elements.themeToggle.setAttribute("aria-label", isDark ? "Enable light mode" : "Enable dark mode");
   elements.themeToggle.title = isDark ? "Enable light mode" : "Enable dark mode";
 }
@@ -60,13 +115,11 @@ function toggleTheme() {
 loadTheme();
 document.querySelector("#footerYear").textContent = new Date().getFullYear();
 
+// ---------- Small UI helpers ----------
 function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+  const textContainer = document.createElement("span");
+  textContainer.textContent = String(value);
+  return textContainer.innerHTML;
 }
 
 function fillSelect(select, values) {
@@ -85,6 +138,7 @@ function showToast(message) {
   showToast.timer = window.setTimeout(() => elements.toast.classList.add("hidden"), 2200);
 }
 
+// ---------- Catalog filtering and rendering ----------
 function allKnownMovies() {
   return [...state.movies, ...state.discoverMovies, ...state.onlineMovies].filter(
     (movie, index, movies) => movies.findIndex((item) => item.id === movie.id) === index,
@@ -129,7 +183,7 @@ function currentMovies() {
 function movieCard(movie, index) {
   const saved = state.watchlist.includes(movie.id);
   const match = movie.match_score ? `<span class="match">${movie.match_score}% match | ${escapeHtml(movie.reason)}</span>` : "";
-  const rating = movie.rating ? `&#9733; ${movie.rating.toFixed(1)}` : "IMDb";
+  const rating = movie.rating ? `★ ${movie.rating.toFixed(1)}` : "IMDb";
   const secondaryAction = movie.source === "imdb"
     ? `<button class="secondary" data-open="${escapeHtml(movie.external_url)}">IMDb</button>`
     : `<button class="secondary ${saved ? "saved" : ""}" data-watchlist="${movie.id}">${saved ? "Saved" : "Add"}</button>`;
@@ -181,6 +235,7 @@ function render() {
   }
 }
 
+// Pagination loads more online catalog pages only when they are requested.
 function renderPagination(query) {
   const shouldShow = state.view === "discover" && !query;
   elements.pagination.classList.toggle("hidden", !shouldShow);
@@ -202,6 +257,7 @@ function renderPagination(query) {
   elements.pagination.innerHTML = pageButtons.join("");
 }
 
+// ---------- Movie details and watchlist ----------
 function showMovie(movieId) {
   const movie = allKnownMovies().find((item) => item.id === movieId);
   if (!movie) return;
@@ -232,7 +288,7 @@ function updateDialogButton() {
 }
 
 async function toggleWatchlist(movieId) {
-  state.watchlist = await window.pywebview.api.toggle_watchlist(movieId);
+  state.watchlist = await backendApi().toggle_watchlist(movieId);
   updateDialogButton();
   render();
   showToast(state.watchlist.includes(movieId) ? "Added to your watchlist" : "Removed from your watchlist");
@@ -240,16 +296,124 @@ async function toggleWatchlist(movieId) {
 
 async function makeRecommendations() {
   const movieId = elements.favoriteMovie.value;
-  state.recommendations = await window.pywebview.api.recommend(movieId);
+  state.recommendations = await backendApi().recommend(movieId);
   render();
 }
 
+// ---------- Featured recommendation carousel ----------
+function featuredMovies() {
+  return state.movies.slice(0, 5);
+}
+
+function showFeaturedMovie(index) {
+  const movies = featuredMovies();
+  if (!movies.length) return;
+
+  state.featuredIndex = (index + movies.length) % movies.length;
+  const featured = movies[state.featuredIndex];
+  const hero = document.querySelector("#hero");
+  hero.classList.remove("hero-changing");
+  void hero.offsetWidth;
+  hero.classList.add("hero-changing");
+  document.querySelector("#heroImage").src = featured.backdrop;
+  document.querySelector("#heroImage").alt = `${featured.title} backdrop`;
+  document.querySelector("#heroTitle").textContent = featured.title;
+  document.querySelector("#heroOverview").textContent = featured.overview;
+  document.querySelector("#heroDots").innerHTML = movies.map((movie, movieIndex) => `
+    <button class="hero-dot ${movieIndex === state.featuredIndex ? "active" : ""}" data-featured="${movieIndex}" aria-label="Show ${escapeHtml(movie.title)}"></button>
+  `).join("");
+}
+
+function startFeaturedRotation() {
+  window.clearInterval(state.featuredTimer);
+  if (featuredMovies().length < 2) return;
+  state.featuredTimer = window.setInterval(() => showFeaturedMovie(state.featuredIndex + 1), 4000);
+}
+
+// ---------- MRS Chat Bot interface ----------
+function setChatOpen(isOpen) {
+  // Keep visual state and screen-reader state synchronized.
+  elements.chatPanel.classList.toggle("hidden", !isOpen);
+  elements.chatLauncher.setAttribute("aria-expanded", String(isOpen));
+  elements.chatLauncher.setAttribute("aria-label", isOpen ? "Close MRS Chat Bot" : "Open MRS Chat Bot");
+  if (isOpen) elements.chatInput.focus();
+}
+
+function appendChatMessage(role, message, movieIds = []) {
+  // textContent is used for chatbot text to prevent HTML injection.
+  const messageElement = document.createElement("p");
+  messageElement.className = `chat-message ${role}`;
+  messageElement.textContent = message;
+  elements.chatMessages.append(messageElement);
+
+  if (movieIds.length) {
+    // Python returns IDs; the browser enriches them with existing catalog data.
+    const suggestions = document.createElement("div");
+    suggestions.className = "chat-suggestions";
+    movieIds.forEach((movieId) => {
+      const movie = allKnownMovies().find((item) => item.id === movieId);
+      if (!movie) return;
+      const button = document.createElement("button");
+      button.className = "chat-suggestion";
+      button.dataset.chatMovie = movie.id;
+      const poster = document.createElement("img");
+      poster.src = movie.poster;
+      poster.alt = "";
+      const details = document.createElement("span");
+      const title = document.createElement("strong");
+      title.textContent = movie.title;
+      const metadata = document.createElement("small");
+      metadata.textContent = `${movie.year} · ${movie.genres.slice(0, 2).join(" / ")} · ${movie.rating.toFixed(1)}`;
+      details.append(title, metadata);
+      const arrow = document.createElement("span");
+      arrow.className = "chat-suggestion-arrow";
+      arrow.setAttribute("aria-hidden", "true");
+      arrow.textContent = ">";
+      button.append(poster, details, arrow);
+      suggestions.append(button);
+    });
+    elements.chatMessages.append(suggestions);
+  }
+
+  elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+  return messageElement;
+}
+
+async function sendChatMessage(message) {
+  const cleanMessage = message.trim();
+  if (!cleanMessage || elements.chatSend.disabled) return;
+
+  // Replace the welcome screen with the conversation after the first message.
+  document.querySelector("#chatPrompts")?.remove();
+  document.querySelector(".chat-welcome")?.remove();
+  appendChatMessage("user", cleanMessage);
+  elements.chatInput.value = "";
+  elements.chatInput.disabled = true;
+  elements.chatSend.disabled = true;
+  const pendingMessage = appendChatMessage("assistant pending", "Thinking...");
+
+  // PyWebView exposes MovieApi.chat as an asynchronous JavaScript method.
+  try {
+    const response = await backendApi().chat(cleanMessage);
+    pendingMessage.remove();
+    appendChatMessage("assistant", response.message, response.movie_ids);
+  } catch (error) {
+    pendingMessage.textContent = "MRS Chat Bot couldn't answer that right now. Please try again.";
+  } finally {
+    // Always restore the composer, including after a Python/API error.
+    elements.chatInput.disabled = false;
+    elements.chatSend.disabled = false;
+    elements.chatInput.focus();
+  }
+}
+
+// ---------- Online catalog and page navigation ----------
 async function loadMoreDiscover() {
   if (state.isLoadingDiscover || !state.hasMoreDiscover) return false;
 
   state.isLoadingDiscover = true;
   render();
-  const nextMovies = await window.pywebview.api.discover_movies(state.discoverSkip);
+  const nextMovies = await backendApi().discover_movies(state.discoverSkip);
   state.isLoadingDiscover = false;
 
   if (!nextMovies.length) {
@@ -289,8 +453,14 @@ function changeView(view) {
   render();
 }
 
+// ---------- User interaction wiring ----------
 function attachEvents() {
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) startFeaturedRotation();
+  });
   elements.search.addEventListener("input", () => {
+    // Invalidate any online request that was started for the previous query.
+    state.searchRequestId += 1;
     state.onlineMovies = [];
     state.currentPage = 1;
     render();
@@ -304,14 +474,36 @@ function attachEvents() {
     changeView("discover");
     const query = elements.search.value.trim();
     if (!query) return;
+    const requestId = ++state.searchRequestId;
     state.isSearchingOnline = true;
     render();
-    state.onlineMovies = await window.pywebview.api.search_movies(query);
-    state.isSearchingOnline = false;
-    render();
-    if (!state.onlineMovies.length) showToast("No online results found. Check your connection or try another title.");
+    try {
+      const movies = await backendApi().search_movies(query);
+      if (requestId !== state.searchRequestId) return;
+      state.onlineMovies = movies;
+      if (!movies.length) showToast("No online results found. Check your connection or try another title.");
+    } catch (error) {
+      if (requestId === state.searchRequestId) showToast("Online search is unavailable. Please try again.");
+    } finally {
+      if (requestId === state.searchRequestId) {
+        state.isSearchingOnline = false;
+        render();
+      }
+    }
   });
   elements.themeToggle.addEventListener("click", toggleTheme);
+  elements.chatLauncher.addEventListener("click", () => setChatOpen(elements.chatPanel.classList.contains("hidden")));
+  document.querySelector("#chatClose").addEventListener("click", () => setChatOpen(false));
+  elements.chatForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    sendChatMessage(elements.chatInput.value);
+  });
+  elements.chatMessages.addEventListener("click", (event) => {
+    const prompt = event.target.closest("[data-prompt]");
+    const movie = event.target.closest("[data-chat-movie]");
+    if (prompt) sendChatMessage(prompt.dataset.prompt);
+    if (movie) showMovie(movie.dataset.chatMovie);
+  });
   elements.pagination.addEventListener("click", (event) => {
     const pageButton = event.target.closest("[data-page]");
     if (pageButton) goToPage(Number(pageButton.dataset.page));
@@ -327,12 +519,26 @@ function attachEvents() {
   });
 
   document.querySelectorAll(".nav button[data-view]").forEach((button) => button.addEventListener("click", () => changeView(button.dataset.view)));
-  document.querySelector("#heroDetails").addEventListener("click", () => showMovie(state.movies[0].id));
+  document.querySelector("#heroDetails").addEventListener("click", () => showMovie(featuredMovies()[state.featuredIndex].id));
+  document.querySelector("#heroPrevious").addEventListener("click", () => {
+    showFeaturedMovie(state.featuredIndex - 1);
+    startFeaturedRotation();
+  });
+  document.querySelector("#heroNext").addEventListener("click", () => {
+    showFeaturedMovie(state.featuredIndex + 1);
+    startFeaturedRotation();
+  });
+  document.querySelector("#heroDots").addEventListener("click", (event) => {
+    const dot = event.target.closest("[data-featured]");
+    if (!dot) return;
+    showFeaturedMovie(Number(dot.dataset.featured));
+    startFeaturedRotation();
+  });
   document.querySelector("#recommendButton").addEventListener("click", makeRecommendations);
   document.querySelector("#closeDialog").addEventListener("click", () => elements.dialog.close());
   document.querySelector("#dialogWatchlist").addEventListener("click", () => {
     if (state.selectedMovie.source === "imdb") {
-      window.pywebview.api.open_url(state.selectedMovie.external_url);
+      backendApi().open_url(state.selectedMovie.external_url);
     } else {
       toggleWatchlist(state.selectedMovie.id);
     }
@@ -344,14 +550,21 @@ function attachEvents() {
     const externalLink = event.target.closest("[data-open]");
     if (details) showMovie(details.dataset.details);
     if (watchlist) toggleWatchlist(watchlist.dataset.watchlist);
-    if (externalLink) window.pywebview.api.open_url(externalLink.dataset.open);
+    if (externalLink) backendApi().open_url(externalLink.dataset.open);
   });
 
 }
 
+// ---------- Application startup ----------
 async function startApp() {
-  state.movies = await window.pywebview.api.get_movies();
-  state.watchlist = await window.pywebview.api.get_watchlist();
+  state.movies = await backendApi().get_movies();
+  state.watchlist = await backendApi().get_watchlist();
+
+  // Preload carousel images so automatic changes do not wait on the network.
+  featuredMovies().forEach((movie) => {
+    const image = new Image();
+    image.src = movie.backdrop;
+  });
 
   const genres = [...new Set(state.movies.flatMap((movie) => movie.genres))].sort();
   const moods = [...new Set(state.movies.flatMap((movie) => movie.moods))].sort();
@@ -360,13 +573,18 @@ async function startApp() {
   fillSelect(elements.favoriteMovie, state.movies.map((movie) => movie.title));
   [...elements.favoriteMovie.options].forEach((option, index) => { option.value = state.movies[index].id; });
 
-  const featured = state.movies[0];
-  document.querySelector("#heroImage").src = featured.backdrop;
-  document.querySelector("#heroTitle").textContent = featured.title;
-  document.querySelector("#heroOverview").textContent = featured.overview;
+  showFeaturedMovie(0);
+  startFeaturedRotation();
   attachEvents();
   render();
   await loadMoreDiscover();
 }
 
-window.addEventListener("pywebviewready", startApp);
+// Desktop waits for Python; hosted pages can start when the DOM is ready.
+if (window.location.protocol === "file:") {
+  window.addEventListener("pywebviewready", startApp);
+} else if (document.readyState === "loading") {
+  window.addEventListener("DOMContentLoaded", startApp);
+} else {
+  startApp();
+}
