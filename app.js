@@ -202,8 +202,7 @@ function setTheme(theme) {
 
 function loadTheme() {
   const savedTheme = localStorage.getItem("mrsmovies_theme");
-  const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-  setTheme(savedTheme || systemTheme);
+  setTheme(savedTheme || "dark");
 }
 
 function toggleTheme() {
@@ -442,6 +441,8 @@ function showFeaturedMovie(index) {
 
   state.featuredIndex = (index + movies.length) % movies.length;
   const featured = movies[state.featuredIndex];
+  const previous = movies[(state.featuredIndex - 1 + movies.length) % movies.length];
+  const next = movies[(state.featuredIndex + 1) % movies.length];
   const hero = document.querySelector("#hero");
   hero.classList.remove("hero-changing");
   void hero.offsetWidth;
@@ -449,7 +450,14 @@ function showFeaturedMovie(index) {
   document.querySelector("#heroImage").src = featured.backdrop;
   document.querySelector("#heroImage").alt = `${featured.title} backdrop`;
   document.querySelector("#heroTitle").textContent = featured.title;
+  document.querySelector("#heroCardTitle").textContent = featured.title;
   document.querySelector("#heroOverview").textContent = featured.overview;
+  document.querySelector("#heroPreviousImage").src = previous.backdrop;
+  document.querySelector("#heroPreviousImage").alt = `${previous.title} backdrop`;
+  document.querySelector("#heroPreviousTitle").textContent = previous.title;
+  document.querySelector("#heroNextImage").src = next.backdrop;
+  document.querySelector("#heroNextImage").alt = `${next.title} backdrop`;
+  document.querySelector("#heroNextTitle").textContent = next.title;
   document.querySelector("#heroDots").innerHTML = movies.map((movie, movieIndex) => `
     <button class="hero-dot ${movieIndex === state.featuredIndex ? "active" : ""}" data-featured="${movieIndex}" aria-label="Show ${escapeHtml(movie.title)}"></button>
   `).join("");
@@ -680,6 +688,15 @@ function attachEvents() {
 
   document.querySelectorAll(".nav button[data-view]").forEach((button) => button.addEventListener("click", () => changeView(button.dataset.view)));
   document.querySelector("#heroDetails").addEventListener("click", () => showMovie(featuredMovies()[state.featuredIndex].id));
+  document.querySelector("#heroCurrentPreview").addEventListener("click", () => showMovie(featuredMovies()[state.featuredIndex].id));
+  document.querySelector("#heroPreviousPreview").addEventListener("click", () => {
+    showFeaturedMovie(state.featuredIndex - 1);
+    startFeaturedRotation();
+  });
+  document.querySelector("#heroNextPreview").addEventListener("click", () => {
+    showFeaturedMovie(state.featuredIndex + 1);
+    startFeaturedRotation();
+  });
   document.querySelector("#heroPrevious").addEventListener("click", () => {
     showFeaturedMovie(state.featuredIndex - 1);
     startFeaturedRotation();
@@ -694,6 +711,28 @@ function attachEvents() {
     showFeaturedMovie(Number(dot.dataset.featured));
     startFeaturedRotation();
   });
+  const heroStage = document.querySelector("#heroStage");
+  let swipeStartX = null;
+  heroStage.addEventListener("pointerdown", (event) => { swipeStartX = event.clientX; });
+  heroStage.addEventListener("pointerup", (event) => {
+    if (swipeStartX === null || Math.abs(event.clientX - swipeStartX) < 45) return;
+    showFeaturedMovie(state.featuredIndex + (event.clientX < swipeStartX ? 1 : -1));
+    startFeaturedRotation();
+    swipeStartX = null;
+  });
+  heroStage.addEventListener("pointermove", (event) => {
+    if (event.pointerType !== "mouse") return;
+    const bounds = heroStage.getBoundingClientRect();
+    heroStage.style.setProperty("--stage-x", `${((event.clientX - bounds.left) / bounds.width - 0.5) * 8}deg`);
+    heroStage.style.setProperty("--stage-y", `${((event.clientY - bounds.top) / bounds.height - 0.5) * -6}deg`);
+  });
+  heroStage.addEventListener("pointerleave", () => {
+    swipeStartX = null;
+    heroStage.style.removeProperty("--stage-x");
+    heroStage.style.removeProperty("--stage-y");
+  });
+  document.querySelector("#hero").addEventListener("mouseenter", () => window.clearInterval(state.featuredTimer));
+  document.querySelector("#hero").addEventListener("mouseleave", startFeaturedRotation);
   document.querySelector("#recommendButton").addEventListener("click", makeRecommendations);
   document.querySelector("#closeDialog").addEventListener("click", () => elements.dialog.close());
   document.querySelector("#dialogWatchlist").addEventListener("click", () => {
