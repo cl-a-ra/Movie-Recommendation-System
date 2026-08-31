@@ -3,6 +3,8 @@
 A movie recommendation system built with Python, Flask, PyWebView, HTML, CSS,
 and vanilla JavaScript. It runs as a desktop application or a hosted website.
 
+**Live website:** [mrs-movie-recommendation-system.vercel.app](https://mrs-movie-recommendation-system.vercel.app)
+
 ## Run the app
 
 1. Install Python 3.10 or newer.
