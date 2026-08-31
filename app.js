@@ -439,14 +439,17 @@ function showFeaturedMovie(index) {
   const movies = featuredMovies();
   if (!movies.length) return;
 
+  const previousIndex = state.featuredIndex;
   state.featuredIndex = (index + movies.length) % movies.length;
   const featured = movies[state.featuredIndex];
   const previous = movies[(state.featuredIndex - 1 + movies.length) % movies.length];
   const next = movies[(state.featuredIndex + 1) % movies.length];
   const hero = document.querySelector("#hero");
+  hero.dataset.direction = index < previousIndex ? "backward" : "forward";
   hero.classList.remove("hero-changing");
   void hero.offsetWidth;
   hero.classList.add("hero-changing");
+  document.querySelector("#heroAmbientImage").src = featured.backdrop;
   document.querySelector("#heroImage").src = featured.backdrop;
   document.querySelector("#heroImage").alt = `${featured.title} backdrop`;
   document.querySelector("#heroTitle").textContent = featured.title;
@@ -458,6 +461,9 @@ function showFeaturedMovie(index) {
   document.querySelector("#heroNextImage").src = next.backdrop;
   document.querySelector("#heroNextImage").alt = `${next.title} backdrop`;
   document.querySelector("#heroNextTitle").textContent = next.title;
+  document.querySelectorAll("[data-ticker-movie]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.tickerMovie === String(featured.id));
+  });
   document.querySelector("#heroDots").innerHTML = movies.map((movie, movieIndex) => `
     <button class="hero-dot ${movieIndex === state.featuredIndex ? "active" : ""}" data-featured="${movieIndex}" aria-label="Show ${escapeHtml(movie.title)}"></button>
   `).join("");
@@ -467,6 +473,41 @@ function startFeaturedRotation() {
   window.clearInterval(state.featuredTimer);
   if (featuredMovies().length < 2) return;
   state.featuredTimer = window.setInterval(() => showFeaturedMovie(state.featuredIndex + 1), 4000);
+}
+
+function renderMovieTicker() {
+  const tickerMovies = featuredMovies().map((movie) => `
+    <button class="ticker-movie" data-ticker-movie="${movie.id}" type="button">
+      <img src="${escapeHtml(movie.backdrop)}" alt="">
+      <strong>${escapeHtml(movie.title)}</strong>
+      <span aria-hidden="true">›</span>
+    </button>
+  `).join("");
+  document.querySelector("#movieTicker").innerHTML = `<div class="ticker-group">${tickerMovies}</div><div class="ticker-group" aria-hidden="true">${tickerMovies}</div>`;
+}
+
+function setupPageMotion() {
+  const motionSections = document.querySelectorAll(".movie-ticker, .discovery-bar, .filters, .section-heading, .movie-grid, .pagination");
+  motionSections.forEach((section) => section.classList.add("motion-section"));
+
+  let motionFrame = null;
+  const updateScrollMotion = () => {
+    motionFrame = null;
+    const scrollAmount = Math.min(window.scrollY, 320);
+    document.querySelector(".topbar").classList.toggle("scrolled", window.scrollY > 24);
+    document.querySelector("#hero").style.setProperty("--hero-copy-shift", `${scrollAmount * 0.1}px`);
+    document.querySelector("#hero").style.setProperty("--hero-stage-shift", `${scrollAmount * -0.06}px`);
+    motionSections.forEach((section) => {
+      const bounds = section.getBoundingClientRect();
+      if (bounds.top < window.innerHeight * 0.94 && bounds.bottom > 0) section.classList.add("in-view");
+    });
+  };
+  window.addEventListener("scroll", () => {
+    if (!motionFrame) motionFrame = window.requestAnimationFrame(updateScrollMotion);
+  }, { passive: true });
+  updateScrollMotion();
+  window.requestAnimationFrame(updateScrollMotion);
+  window.addEventListener("pageshow", updateScrollMotion, { once: true });
 }
 
 // ---------- MRS Chat Bot interface ----------
@@ -676,6 +717,10 @@ function attachEvents() {
     const pageButton = event.target.closest("[data-page]");
     if (pageButton) goToPage(Number(pageButton.dataset.page));
   });
+  document.querySelector("#movieTicker").addEventListener("click", (event) => {
+    const movie = event.target.closest("[data-ticker-movie]");
+    if (movie) showMovie(movie.dataset.tickerMovie);
+  });
   document.querySelector("#resetFilters").addEventListener("click", () => {
     elements.search.value = "";
     elements.type.value = "All";
@@ -731,6 +776,20 @@ function attachEvents() {
     heroStage.style.removeProperty("--stage-x");
     heroStage.style.removeProperty("--stage-y");
   });
+  elements.grid.addEventListener("pointermove", (event) => {
+    if (event.pointerType !== "mouse") return;
+    const card = event.target.closest(".movie-card");
+    if (!card) return;
+    const bounds = card.getBoundingClientRect();
+    card.style.setProperty("--card-rx", `${((event.clientY - bounds.top) / bounds.height - 0.5) * -5}deg`);
+    card.style.setProperty("--card-ry", `${((event.clientX - bounds.left) / bounds.width - 0.5) * 6}deg`);
+  });
+  elements.grid.addEventListener("pointerout", (event) => {
+    const card = event.target.closest(".movie-card");
+    if (!card || card.contains(event.relatedTarget)) return;
+    card.style.removeProperty("--card-rx");
+    card.style.removeProperty("--card-ry");
+  });
   document.querySelector("#hero").addEventListener("mouseenter", () => window.clearInterval(state.featuredTimer));
   document.querySelector("#hero").addEventListener("mouseleave", startFeaturedRotation);
   document.querySelector("#recommendButton").addEventListener("click", makeRecommendations);
@@ -769,6 +828,7 @@ async function startApp() {
     const image = new Image();
     image.src = movie.backdrop;
   });
+  renderMovieTicker();
 
   const genres = [...new Set(state.movies.flatMap((movie) => movie.genres))].sort();
   const moods = [...new Set(state.movies.flatMap((movie) => movie.moods))].sort();
@@ -788,6 +848,7 @@ async function startApp() {
   showFeaturedMovie(0);
   startFeaturedRotation();
   attachEvents();
+  setupPageMotion();
   render();
   await loadMoreDiscover();
 }
