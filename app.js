@@ -70,6 +70,7 @@ const webApi = {
   discover_movies: (skip) => fetchJson(`/api/discover?skip=${encodeURIComponent(skip)}`),
   search_movies: (query) => fetchJson(`/api/search?q=${encodeURIComponent(query)}`),
   recommend: (movieId) => fetchJson(`/api/recommend/${encodeURIComponent(movieId)}`),
+  recommend_for_user: () => fetchJson("/api/recommendations/personalized"),
   chat: (message) => fetchJson("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -140,6 +141,7 @@ function renderAccount() {
 
 async function completeAuthentication(response) {
   state.user = response.user;
+  state.recommendations = [];
   state.watchlist = await webApi.get_watchlist();
   elements.authDialog.close();
   elements.authForm.reset();
@@ -177,7 +179,9 @@ async function openAccount() {
   if (window.confirm(`Sign out of ${state.user.email}?`)) {
     await webApi.logout();
     state.user = null;
+    state.recommendations = [];
     state.watchlist = await webApi.get_watchlist();
+    elements.recommendationPanel.classList.toggle("hidden", state.view !== "recommended");
     renderAccount();
     render();
     showToast("You are signed out");
@@ -243,7 +247,7 @@ function currentMovies() {
     return allKnownMovies().filter((movie) => state.watchlist.includes(movie.id));
   }
 
-  if (state.view === "recommended" && state.recommendations.length) {
+  if (state.view === "recommended") {
     return state.recommendations;
   }
 
@@ -537,12 +541,21 @@ async function goToPage(page) {
   document.querySelector(".section-heading").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-function changeView(view) {
+async function changeView(view) {
   state.view = view;
   document.querySelectorAll(".nav button").forEach((button) => button.classList.toggle("active", button.dataset.view === view));
-  elements.recommendationPanel.classList.toggle("hidden", view !== "recommended");
+  elements.recommendationPanel.classList.toggle("hidden", view !== "recommended" || Boolean(state.user));
   elements.filterPanel.classList.toggle("hidden", view !== "discover");
   document.querySelector("#hero").classList.toggle("hidden", view !== "discover");
+  if (view === "recommended" && state.user) {
+    try {
+      state.recommendations = await webApi.recommend_for_user();
+      if (!state.recommendations.length) showToast("Save a few catalog movies to shape your recommendations");
+    } catch (error) {
+      state.recommendations = [];
+      showToast("Personalized recommendations are unavailable right now");
+    }
+  }
   render();
 }
 

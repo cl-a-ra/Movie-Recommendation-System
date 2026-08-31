@@ -28,7 +28,8 @@ python -m flask --app web_app:web_app run
 
 Open `http://127.0.0.1:5000` in a browser. The hosted version keeps each
 guest's watchlist in browser storage. Signed-in users get a password-protected
-account and a personal watchlist stored by the Python backend.
+account and a personal watchlist stored by the Python backend. Their saved
+genres and moods also shape the personalized **For You** recommendations.
 
 Set `MRS_SECRET_KEY` to a long random value outside development. User accounts
 use SQLite at `MRS_DATABASE_PATH` (or `mrsmovies.db` by default), so production

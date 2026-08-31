@@ -10,6 +10,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import webbrowser
+from collections import Counter
 from pathlib import Path
 
 from movie_data import MOVIES
@@ -193,6 +194,43 @@ class MovieApi:
 
         scored_movies.sort(key=lambda movie: movie["match_score"], reverse=True)
         return scored_movies[:5]
+
+    def recommend_for(self, movie_ids):
+        """Rank local movies against preferences learned from a watchlist."""
+        saved_ids = set(movie_ids)
+        saved_movies = [movie for movie in MOVIES if movie["id"] in saved_ids]
+        if not saved_movies:
+            return []
+
+        preferences = Counter(
+            tag
+            for movie in saved_movies
+            for tag in movie["genres"] + movie["moods"]
+        )
+        recommendations = []
+        for movie in MOVIES:
+            if movie["id"] in saved_ids:
+                continue
+
+            movie_tags = set(movie["genres"] + movie["moods"])
+            matching_tags = sorted(
+                movie_tags.intersection(preferences),
+                key=lambda tag: (-preferences[tag], tag),
+            )
+            if not matching_tags:
+                continue
+
+            preference_score = sum(preferences[tag] for tag in matching_tags)
+            result = dict(movie)
+            result["match_score"] = min(99, round(preference_score * 12 + movie["rating"]))
+            result["reason"] = "From your watchlist: " + ", ".join(matching_tags[:3])
+            recommendations.append(result)
+
+        recommendations.sort(
+            key=lambda movie: (movie["match_score"], movie["rating"]),
+            reverse=True,
+        )
+        return recommendations[:8]
 
     def chat(self, message):
         """Answer natural-language movie questions using the local catalog."""

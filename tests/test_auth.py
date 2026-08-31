@@ -51,6 +51,18 @@ class AuthenticationTests(unittest.TestCase):
 
         self.assertEqual(second.get("/api/watchlist").json, [])
 
+    def test_watchlist_drives_personalized_recommendations(self):
+        client = web_app.web_app.test_client()
+        self.signup(client)
+        client.post("/api/watchlist/m1")
+
+        response = client.get("/api/recommendations/personalized")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("m1", [movie["id"] for movie in response.json])
+        self.assertTrue(response.json)
+        self.assertTrue(response.json[0]["reason"].startswith("From your watchlist:"))
+
     def test_rejects_invalid_and_duplicate_accounts(self):
         client = web_app.web_app.test_client()
 

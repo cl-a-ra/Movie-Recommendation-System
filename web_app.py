@@ -151,5 +151,14 @@ def toggle_account_watchlist(movie_id):
     return jsonify(auth_store.toggle_watchlist(user["id"], movie_id))
 
 
+@web_app.get("/api/recommendations/personalized")
+def personalized_recommendations():
+    user = current_user()
+    if user is None:
+        return authentication_required()
+    watchlist = auth_store.get_watchlist(user["id"])
+    return jsonify(movie_api.recommend_for(watchlist))
+
+
 if __name__ == "__main__":
     web_app.run(debug=True)
