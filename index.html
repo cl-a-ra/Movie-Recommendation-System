@@ -76,9 +76,7 @@
     button { cursor: pointer; }
     img { display: block; max-width: 100%; }
 
-    /* Sticky shell keeps the announcement strip and header pinned together. */
-    .site-header { position: sticky; top: 0; z-index: 20; }
-
+    /* Announcement scrolls away normally; only the compact topbar stays pinned. */
     .announcement {
       display: flex;
       align-items: center;
@@ -97,7 +95,9 @@
 
     /* Sticky application header: brand, search, navigation, and theme toggle. */
     .topbar {
-      position: relative;
+      position: sticky;
+      top: 0;
+      z-index: 20;
       display: grid;
       grid-template-columns: auto minmax(220px, 520px) auto;
       align-items: center;
@@ -808,27 +808,25 @@
   </style>
 </head>
 <body>
-  <!-- Sticky strip + header: announcement, global search, and the main application views. -->
-  <div class="site-header">
-    <div class="announcement">
-      <span>New titles land on MRSmovies every week</span>
-      <a class="announcement-link" href="#movieGrid">Explore now <span aria-hidden="true">&rarr;</span></a>
-    </div>
-    <header class="topbar">
-      <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span>MRSmovies</span></div>
-      <form id="searchForm" class="search-form" role="search">
-        <input id="searchInput" class="search" type="search" placeholder="Type a movie title, director, genre, or mood" aria-label="Search movies">
-        <button class="search-button" type="submit">Search</button>
-      </form>
-      <nav class="nav" aria-label="Main navigation">
-        <button class="active" data-view="discover">Discover</button>
-        <button data-view="recommended">For You</button>
-        <button data-view="watchlist">Watchlist <span id="watchlistCount">0</span></button>
-        <button id="authButton" class="account-button hidden">Sign in</button>
-        <button id="themeToggle" class="theme-toggle" aria-label="Enable dark mode" title="Enable dark mode">☾</button>
-      </nav>
-    </header>
+  <!-- Announcement scrolls away normally; only the topbar below stays pinned. -->
+  <div class="announcement">
+    <span>New titles land on MRSmovies every week</span>
+    <a class="announcement-link" href="#movieGrid">Explore now <span aria-hidden="true">&rarr;</span></a>
   </div>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span>MRSmovies</span></div>
+    <form id="searchForm" class="search-form" role="search">
+      <input id="searchInput" class="search" type="search" placeholder="Type a movie title, director, genre, or mood" aria-label="Search movies">
+      <button class="search-button" type="submit">Search</button>
+    </form>
+    <nav class="nav" aria-label="Main navigation">
+      <button class="active" data-view="discover">Discover</button>
+      <button data-view="recommended">For You</button>
+      <button data-view="watchlist">Watchlist <span id="watchlistCount">0</span></button>
+      <button id="authButton" class="account-button hidden">Sign in</button>
+      <button id="themeToggle" class="theme-toggle" aria-label="Enable dark mode" title="Enable dark mode">☾</button>
+    </nav>
+  </header>
 
   <main>
     <!-- Rotating featured area; JavaScript supplies movie content and indicators. -->
