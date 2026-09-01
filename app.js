@@ -448,7 +448,7 @@ async function makeRecommendations() {
 // recomputed every frame from its live distance to the stage's center.
 const marquee = {
   offset: 0,
-  speed: 58,
+  speed: 86,
   itemWidth: 0,
   paused: false,
   lastTimestamp: null,
@@ -573,7 +573,7 @@ function stepMarquee(timestamp) {
 
 function startFeaturedRotation() {
   if (marquee.rafId) return;
-  marquee.speed = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 26 : 58;
+  marquee.speed = 86;
   marquee.lastTimestamp = null;
   marquee.rafId = requestAnimationFrame(stepMarquee);
 }
