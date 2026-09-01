@@ -238,24 +238,24 @@ function showToast(message) {
 
 function genreColor(movie) {
   const colors = {
-    Action: "#f04e23",
-    Adventure: "#f1a93f",
-    Animation: "#4c86ff",
-    Comedy: "#0fae7b",
-    Crime: "#e0447c",
-    Drama: "#8f6bff",
-    Fantasy: "#b44cff",
-    Horror: "#5f6b7c",
-    Mystery: "#0ea5b7",
-    Romance: "#ff6ea1",
-    "Sci-Fi": "#00a8c9",
-    Thriller: "#ff7a3d",
+    Action: "#f43f5e",
+    Adventure: "#a855f7",
+    Animation: "#3b82f6",
+    Comedy: "#10b981",
+    Crime: "#e11d48",
+    Drama: "#8b5cf6",
+    Fantasy: "#d946ef",
+    Horror: "#64748b",
+    Mystery: "#06b6d4",
+    Romance: "#ec4899",
+    "Sci-Fi": "#0ea5e9",
+    Thriller: "#f59e0b",
   };
-  return colors[movie.genres[0]] || "#0fae7b";
+  return colors[movie.genres[0]] || "#8b5cf6";
 }
 
 // Deterministic color per mood keeps the chips playful but stable between renders.
-const MOOD_COLORS = ["#f04e23", "#4c86ff", "#0fae7b", "#b44cff", "#e0447c", "#0ea5b7", "#f1a93f"];
+const MOOD_COLORS = ["#a855f7", "#ec4899", "#06b6d4", "#10b981", "#f43f5e", "#3b82f6", "#fbbf24"];
 
 function moodColor(mood) {
   let hash = 0;
@@ -808,13 +808,27 @@ function attachEvents() {
     state.currentPage = 1;
     changeView("discover");
   });
-  document.querySelector("#surpriseButton").addEventListener("click", () => {
+  const surpriseBtn = document.querySelector("#surpriseButton");
+  surpriseBtn.addEventListener("click", () => {
     const movies = currentMovies().length ? currentMovies() : state.movies;
     if (!movies.length) return;
-    const randomValues = new Uint32Array(1);
-    crypto.getRandomValues(randomValues);
-    showMovie(movies[randomValues[0] % movies.length].id);
+    surpriseBtn.classList.add("rolling");
+    showToast("🎲 Rolling for your next movie...");
+    setTimeout(() => {
+      surpriseBtn.classList.remove("rolling");
+      const randomValues = new Uint32Array(1);
+      crypto.getRandomValues(randomValues);
+      showMovie(movies[randomValues[0] % movies.length].id);
+    }, 450);
   });
+  const heroElement = document.querySelector("#hero");
+  if (heroElement) {
+    heroElement.addEventListener("pointermove", (event) => {
+      const bounds = heroElement.getBoundingClientRect();
+      heroElement.style.setProperty("--mouse-x", `${event.clientX - bounds.left}px`);
+      heroElement.style.setProperty("--mouse-y", `${event.clientY - bounds.top}px`);
+    });
+  }
   elements.authButton.addEventListener("click", openAccount);
   elements.authForm.addEventListener("submit", submitAuthentication);
   document.querySelector("#authSwitch").addEventListener("click", () => {
