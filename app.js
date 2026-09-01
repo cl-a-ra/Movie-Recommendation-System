@@ -458,6 +458,7 @@ function buildFeaturedMarquee() {
   track.innerHTML = items.map((movie) => `
     <button class="hero-marquee-item" data-movie-id="${movie.id}" type="button" aria-label="View ${escapeHtml(movie.title)} details">
       <img src="${escapeHtml(movie.backdrop)}" alt="">
+      <span class="hero-marquee-title">${escapeHtml(movie.title)}</span>
     </button>
   `).join("");
   document.querySelector("#heroDots").innerHTML = movies.map((movie, movieIndex) => `
@@ -573,7 +574,7 @@ function renderMovieTicker() {
       <span aria-hidden="true">›</span>
     </button>
   `).join("");
-  document.querySelector("#movieTicker").innerHTML = `<div class="ticker-group">${tickerMovies}</div><div class="ticker-group" aria-hidden="true">${tickerMovies}</div>`;
+  document.querySelector("#movieTicker").innerHTML = tickerMovies;
 }
 
 function setupPageMotion() {

@@ -331,6 +331,7 @@
     }
     .hero-marquee-item img { width: 100%; height: 100%; object-fit: cover; }
     .hero-marquee-item::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,.65)); }
+    .hero-marquee-title { position: absolute; z-index: 2; right: 12px; bottom: 10px; left: 12px; overflow: hidden; color: white; font: 700 13px "Space Grotesk", sans-serif; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
 
     .hero-navigation {
       position: absolute;
@@ -362,13 +363,8 @@
     /* Thin gradient bar echoes the orange-to-blue divider used between melius.com sections. */
     .section-divider { height: 4px; margin: 18px 0 0; border-radius: 999px; background: var(--gradient); opacity: .85; }
 
-    .movie-ticker { position: relative; width: 100%; margin: 20px 0 0; overflow: hidden; border-block: 1px solid var(--line); background: var(--surface); }
-    .movie-ticker::before, .movie-ticker::after { content: ""; position: absolute; z-index: 2; top: 0; bottom: 0; width: min(10vw, 120px); pointer-events: none; }
-    .movie-ticker::before { left: 0; background: linear-gradient(90deg, var(--paper), transparent); }
-    .movie-ticker::after { right: 0; background: linear-gradient(-90deg, var(--paper), transparent); }
-    .movie-ticker-track { display: flex; width: max-content; padding: 12px 0; animation: ticker-flow 30s linear infinite; }
-    .movie-ticker:hover .movie-ticker-track, .movie-ticker:focus-within .movie-ticker-track { animation-play-state: paused; }
-    .ticker-group { display: flex; gap: 10px; padding-right: 10px; }
+    .movie-ticker { position: relative; width: 100%; margin: 20px 0 0; border-block: 1px solid var(--line); background: var(--surface); }
+    .movie-ticker-track { display: flex; flex-wrap: wrap; gap: 10px; padding: 12px; }
     .ticker-movie { display: grid; grid-template-columns: 54px minmax(130px, 220px) auto; align-items: center; gap: 11px; min-width: 250px; padding: 6px 14px 6px 6px; color: var(--ink); text-align: left; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); transition: border-color 180ms ease, transform 180ms ease; }
     .ticker-movie:hover, .ticker-movie.active { border-color: var(--accent); transform: translateY(-2px); }
     .ticker-movie img { width: 54px; height: 38px; border-radius: 4px; object-fit: cover; }
@@ -695,7 +691,6 @@
     @keyframes gradient-drift { to { background-position: 200% 0; } }
     @keyframes launcher-pulse { 0%, 100% { box-shadow: var(--shadow), 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); } 50% { box-shadow: var(--shadow), 0 0 0 12px color-mix(in srgb, var(--accent) 0%, transparent); } }
     @keyframes ambient-drift { from { transform: scale(1.08) translate3d(-1.5%, -1%, 0); } to { transform: scale(1.14) translate3d(1.5%, 1%, 0); } }
-    @keyframes ticker-flow { to { transform: translateX(-50%); } }
     @keyframes pulse-ring { from { opacity: 0.8; transform: scale(0.65); } to { opacity: 0; transform: scale(1.35); } }
 
     /* Tablet layout reduces catalog columns and rearranges the header. */
