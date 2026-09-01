@@ -457,7 +457,8 @@ const marquee = {
 };
 
 function featuredMovies() {
-  return state.movies.slice(0, 5);
+  // 8 unique titles ensure a full screen of marquee cards never repeats a movie.
+  return state.movies.slice(0, 8);
 }
 
 function buildFeaturedMarquee() {
@@ -548,9 +549,9 @@ function stepMarquee(timestamp) {
     const rect = item.getBoundingClientRect();
     const itemCenter = rect.left + rect.width / 2;
     const distance = Math.abs(itemCenter - centerX);
-    const normalized = Math.max(-1.4, Math.min(1.4, (itemCenter - centerX) / (stageRect.width / 2)));
-    item.style.transform = `rotateY(${normalized * 32}deg) scale(${1 - Math.min(Math.abs(normalized), 1) * 0.3})`;
-    item.style.opacity = String(Math.max(0.16, 1 - Math.min(Math.abs(normalized), 1) * 0.75));
+    const normalized = Math.max(-1, Math.min(1, (itemCenter - centerX) / (stageRect.width / 2)));
+    item.style.transform = `rotateY(${normalized * 24}deg) scale(${1 - Math.abs(normalized) * 0.12})`;
+    item.style.opacity = String(Math.max(0.55, 1 - Math.abs(normalized) * 0.4));
     item.style.zIndex = String(1000 - Math.round(distance));
     if (distance < closestDistance) {
       closestDistance = distance;
