@@ -238,24 +238,24 @@ function showToast(message) {
 
 function genreColor(movie) {
   const colors = {
-    Action: "#f43f5e",
-    Adventure: "#a855f7",
-    Animation: "#3b82f6",
-    Comedy: "#10b981",
-    Crime: "#e11d48",
-    Drama: "#8b5cf6",
-    Fantasy: "#d946ef",
-    Horror: "#64748b",
-    Mystery: "#06b6d4",
-    Romance: "#ec4899",
-    "Sci-Fi": "#0ea5e9",
-    Thriller: "#f59e0b",
+    Action: "#9a3c34",
+    Adventure: "#a2783d",
+    Animation: "#55787b",
+    Comedy: "#668164",
+    Crime: "#733a35",
+    Drama: "#7b6254",
+    Fantasy: "#766a82",
+    Horror: "#56534e",
+    Mystery: "#43666a",
+    Romance: "#a65c57",
+    "Sci-Fi": "#52727c",
+    Thriller: "#9b743a",
   };
-  return colors[movie.genres[0]] || "#8b5cf6";
+  return colors[movie.genres[0]] || "#7b6254";
 }
 
 // Deterministic color per mood keeps the chips playful but stable between renders.
-const MOOD_COLORS = ["#a855f7", "#ec4899", "#06b6d4", "#10b981", "#f43f5e", "#3b82f6", "#fbbf24"];
+const MOOD_COLORS = ["#8f302b", "#a65c57", "#43666a", "#486b55", "#9b743a", "#55787b", "#b08a4a"];
 
 function moodColor(mood) {
   let hash = 0;
@@ -813,7 +813,7 @@ function attachEvents() {
     const movies = currentMovies().length ? currentMovies() : state.movies;
     if (!movies.length) return;
     surpriseBtn.classList.add("rolling");
-    showToast("🎲 Rolling for your next movie...");
+    showToast("Choosing your next movie...");
     setTimeout(() => {
       surpriseBtn.classList.remove("rolling");
       const randomValues = new Uint32Array(1);
@@ -821,14 +821,6 @@ function attachEvents() {
       showMovie(movies[randomValues[0] % movies.length].id);
     }, 450);
   });
-  const heroElement = document.querySelector("#hero");
-  if (heroElement) {
-    heroElement.addEventListener("pointermove", (event) => {
-      const bounds = heroElement.getBoundingClientRect();
-      heroElement.style.setProperty("--mouse-x", `${event.clientX - bounds.left}px`);
-      heroElement.style.setProperty("--mouse-y", `${event.clientY - bounds.top}px`);
-    });
-  }
   elements.authButton.addEventListener("click", openAccount);
   elements.authForm.addEventListener("submit", submitAuthentication);
   document.querySelector("#authSwitch").addEventListener("click", () => {
@@ -888,20 +880,6 @@ function attachEvents() {
     if (swipeStartX === null || Math.abs(event.clientX - swipeStartX) < 45) return;
     jumpFeaturedBy(event.clientX < swipeStartX ? 1 : -1);
     swipeStartX = null;
-  });
-  elements.grid.addEventListener("pointermove", (event) => {
-    if (event.pointerType !== "mouse") return;
-    const card = event.target.closest(".movie-card");
-    if (!card) return;
-    const bounds = card.getBoundingClientRect();
-    card.style.setProperty("--card-rx", `${((event.clientY - bounds.top) / bounds.height - 0.5) * -5}deg`);
-    card.style.setProperty("--card-ry", `${((event.clientX - bounds.left) / bounds.width - 0.5) * 6}deg`);
-  });
-  elements.grid.addEventListener("pointerout", (event) => {
-    const card = event.target.closest(".movie-card");
-    if (!card || card.contains(event.relatedTarget)) return;
-    card.style.removeProperty("--card-rx");
-    card.style.removeProperty("--card-ry");
   });
   document.querySelector("#recommendButton").addEventListener("click", makeRecommendations);
   document.querySelector("#closeDialog").addEventListener("click", () => elements.dialog.close());
