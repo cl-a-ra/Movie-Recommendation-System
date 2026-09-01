@@ -242,12 +242,14 @@
       position: relative;
       min-height: 850px;
       overflow: hidden;
-      color: #ffffff;
+      color: var(--ink);
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: var(--canvas);
+      background: var(--surface);
       box-shadow: var(--shadow);
     }
+
+    :root[data-theme="dark"] .hero { background: var(--canvas); }
 
     .hero-ambient { position: absolute; inset: -9%; overflow: hidden; opacity: .2; pointer-events: none; mask-image: linear-gradient(to bottom, black, transparent 78%); }
     .hero-ambient img { width: 100%; height: 100%; object-fit: cover; filter: blur(28px) saturate(1.35); transform: scale(1.08); animation: ambient-drift 12s ease-in-out infinite alternate; }
@@ -265,8 +267,8 @@
     }
 
     .hero-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-    .hero .secondary { color: white; border-color: rgba(255, 255, 255, 0.45); background: rgba(12, 15, 20, 0.5); backdrop-filter: blur(10px); }
-    .hero .secondary:hover { border-color: white; background: rgba(12, 15, 20, 0.78); }
+    :root[data-theme="dark"] .hero .secondary { color: white; border-color: rgba(255, 255, 255, 0.45); background: rgba(12, 15, 20, 0.5); backdrop-filter: blur(10px); }
+    :root[data-theme="dark"] .hero .secondary:hover { border-color: white; background: rgba(12, 15, 20, 0.78); }
 
     /* Small tag pills mirror the node labels used across the melius.com canvas. */
     .eyebrow {
@@ -291,7 +293,7 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .hero p { max-width: 590px; margin: 14px auto 22px; color: #b8bac0; line-height: 1.6; }
+    .hero p { max-width: 590px; margin: 14px auto 22px; color: var(--muted); line-height: 1.6; }
 
     /* Continuously scrolling, mirrored-fan marquee (matches melius.com's hero motion). */
     .hero-stage { position: absolute; right: 0; bottom: 62px; left: 0; height: 410px; overflow: hidden; perspective: 1100px; translate: 0 var(--hero-stage-shift, 0); }
@@ -309,7 +311,7 @@
       border: 1px solid var(--line);
       border-radius: 8px;
       background: var(--surface);
-      box-shadow: 0 20px 60px rgba(0,0,0,.5);
+      box-shadow: var(--shadow);
       cursor: pointer;
       transform-style: preserve-3d;
       /* Faded floor reflection below each card, like an awwwards-style mirror. */
@@ -337,16 +339,17 @@
       width: 38px;
       height: 38px;
       padding: 0;
-      color: white;
-      border: 1px solid rgba(255, 255, 255, 0.45);
+      color: var(--ink);
+      border: 1px solid var(--line);
       border-radius: 50%;
-      background: rgba(10, 12, 16, 0.7);
+      background: var(--paper);
       font-size: 18px;
     }
 
+    :root[data-theme="dark"] .hero-nav-button { color: white; border-color: rgba(255, 255, 255, 0.45); background: rgba(10, 12, 16, 0.7); }
     .hero-nav-button:hover { color: white; border-color: var(--accent); background: var(--accent); }
     .hero-dots { display: flex; gap: 6px; }
-    .hero-dot { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.45); }
+    .hero-dot { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 50%; background: color-mix(in srgb, var(--ink) 30%, transparent); }
     .hero-dot.active { width: 22px; border-radius: 5px; background: var(--accent); }
 
     /* Thin gradient bar echoes the orange-to-blue divider used between melius.com sections. */
