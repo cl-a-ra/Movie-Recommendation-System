@@ -254,21 +254,13 @@ function genreColor(movie) {
   return colors[movie.genres[0]] || "#0fae7b";
 }
 
-// Deterministic color + emoji per mood keep the chips playful but stable between renders.
-const MOOD_STYLES = [
-  { color: "#f04e23", emoji: "\ud83d\udd25" },
-  { color: "#4c86ff", emoji: "\ud83c\udf0c" },
-  { color: "#0fae7b", emoji: "\ud83c\udf3f" },
-  { color: "#b44cff", emoji: "\ud83d\udd2e" },
-  { color: "#e0447c", emoji: "\ud83d\udc95" },
-  { color: "#0ea5b7", emoji: "\ud83c\udf0a" },
-  { color: "#f1a93f", emoji: "\u26a1" },
-];
+// Deterministic color per mood keeps the chips playful but stable between renders.
+const MOOD_COLORS = ["#f04e23", "#4c86ff", "#0fae7b", "#b44cff", "#e0447c", "#0ea5b7", "#f1a93f"];
 
-function moodStyle(mood) {
+function moodColor(mood) {
   let hash = 0;
   for (const char of mood) hash = (hash * 31 + char.charCodeAt(0)) % 997;
-  return MOOD_STYLES[hash % MOOD_STYLES.length];
+  return MOOD_COLORS[hash % MOOD_COLORS.length];
 }
 
 function updateDiscoveryPulse(movies) {
@@ -930,10 +922,9 @@ async function startApp() {
     .sort((first, second) => second[1] - first[1])
     .slice(0, 5)
     .map(([mood]) => mood);
-  elements.quickMoods.innerHTML = popularMoods.map((mood) => {
-    const style = moodStyle(mood);
-    return `<button type="button" data-quick-mood="${escapeHtml(mood)}" style="--mood-color: ${style.color}"><span aria-hidden="true">${style.emoji}</span> ${escapeHtml(mood)}</button>`;
-  }).join("");
+  elements.quickMoods.innerHTML = popularMoods.map((mood) => (
+    `<button type="button" data-quick-mood="${escapeHtml(mood)}" style="--mood-color: ${moodColor(mood)}">${escapeHtml(mood)}</button>`
+  )).join("");
   fillSelect(elements.favoriteMovie, state.movies.map((movie) => movie.title));
   [...elements.favoriteMovie.options].forEach((option, index) => { option.value = state.movies[index].id; });
 
