@@ -445,6 +445,8 @@ function showFeaturedMovie(index) {
   const featured = movies[state.featuredIndex];
   const previous = movies[(state.featuredIndex - 1 + movies.length) % movies.length];
   const next = movies[(state.featuredIndex + 1) % movies.length];
+  const previous2 = movies[(state.featuredIndex - 2 + movies.length) % movies.length];
+  const next2 = movies[(state.featuredIndex + 2) % movies.length];
   const hero = document.querySelector("#hero");
   hero.dataset.direction = index < previousIndex ? "backward" : "forward";
   hero.classList.remove("hero-changing");
@@ -466,6 +468,10 @@ function showFeaturedMovie(index) {
   document.querySelector("#heroNextImage").src = next.backdrop;
   document.querySelector("#heroNextImage").alt = `${next.title} backdrop`;
   document.querySelector("#heroNextTitle").textContent = next.title;
+  document.querySelector("#heroPreviousImage2").src = previous2.backdrop;
+  document.querySelector("#heroPreviousImage2").alt = `${previous2.title} backdrop`;
+  document.querySelector("#heroNextImage2").src = next2.backdrop;
+  document.querySelector("#heroNextImage2").alt = `${next2.title} backdrop`;
   document.querySelectorAll("[data-ticker-movie]").forEach((button) => {
     button.classList.toggle("active", button.dataset.tickerMovie === String(featured.id));
   });
@@ -750,6 +756,14 @@ function attachEvents() {
   });
   document.querySelector("#heroNextPreview").addEventListener("click", () => {
     showFeaturedMovie(state.featuredIndex + 1);
+    startFeaturedRotation();
+  });
+  document.querySelector("#heroPreviousPreview2").addEventListener("click", () => {
+    showFeaturedMovie(state.featuredIndex - 2);
+    startFeaturedRotation();
+  });
+  document.querySelector("#heroNextPreview2").addEventListener("click", () => {
+    showFeaturedMovie(state.featuredIndex + 2);
     startFeaturedRotation();
   });
   document.querySelector("#heroPrevious").addEventListener("click", () => {

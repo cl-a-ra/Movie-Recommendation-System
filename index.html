@@ -321,13 +321,17 @@
     .hero-preview { position: absolute; top: 28px; height: 230px; overflow: hidden; padding: 0; color: white; text-align: left; border: 1px solid #2c2e31; border-radius: 8px; background: #111316; box-shadow: 0 20px 60px rgba(0,0,0,.5); transition: opacity 320ms ease, transform 320ms ease, filter 320ms ease; }
     .hero-preview img { position: static; width: 100%; height: 100%; object-fit: cover; }
     .hero-preview::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 46%, rgba(0,0,0,.88)); }
-    .hero-preview-side { z-index: 1; width: 27%; opacity: 0.58; filter: saturate(.7); }
+    .hero-preview-side { z-index: 1; width: 26%; opacity: 0.6; filter: saturate(.7); }
     .hero-preview-side:hover { opacity: .9; filter: saturate(1); }
     .hero-preview-side span { position: absolute; z-index: 2; right: 16px; bottom: 14px; left: 16px; overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
-    .hero-preview-previous { left: 2%; transform: translateX(-10%) rotateY(8deg); }
-    .hero-preview-next { right: 2%; transform: translateX(10%) rotateY(-8deg); }
+    .hero-preview-previous { left: 10%; transform: rotateY(12deg); }
+    .hero-preview-next { right: 10%; transform: rotateY(-12deg); }
     .hero-preview-current { z-index: 2; top: 0; left: 50%; width: 54%; height: 280px; transform: translateX(-50%) rotateX(var(--stage-y)) rotateY(var(--stage-x)); }
     .hero-preview-current:hover { transform: translateX(-50%) rotateX(var(--stage-y)) rotateY(var(--stage-x)) translateY(-5px); }
+    .hero-preview-far { z-index: 0; top: 40px; width: 16%; height: 205px; opacity: .55; filter: saturate(.6) brightness(.88); }
+    .hero-preview-far:hover { opacity: .8; }
+    .hero-preview-previous-far { left: 0%; transform: rotateY(28deg); }
+    .hero-preview-next-far { right: 0%; transform: rotateY(-28deg); }
     .hero-card-copy { position: absolute; z-index: 2; right: 22px; bottom: 19px; left: 22px; }
     .hero-card-copy small {
       display: inline-block;
@@ -731,6 +735,7 @@
       .hero-stage { height: 270px; }
       .hero-preview-current { width: 62%; height: 250px; }
       .hero-preview-side { width: 30%; height: 205px; }
+      .hero-preview-far { display: none; }
       .ticker-movie { min-width: 220px; }
     }
 
@@ -845,6 +850,9 @@
         </div>
       </div>
       <div id="heroStage" class="hero-stage">
+        <button id="heroPreviousPreview2" class="hero-preview hero-preview-far hero-preview-previous-far" aria-label="Show earlier featured movie" tabindex="-1">
+          <img id="heroPreviousImage2" alt="">
+        </button>
         <button id="heroPreviousPreview" class="hero-preview hero-preview-side hero-preview-previous" aria-label="Show previous featured movie">
           <img id="heroPreviousImage" alt="">
           <span id="heroPreviousTitle"></span>
@@ -857,6 +865,9 @@
         <button id="heroNextPreview" class="hero-preview hero-preview-side hero-preview-next" aria-label="Show next featured movie">
           <img id="heroNextImage" alt="">
           <span id="heroNextTitle"></span>
+        </button>
+        <button id="heroNextPreview2" class="hero-preview hero-preview-far hero-preview-next-far" aria-label="Show later featured movie" tabindex="-1">
+          <img id="heroNextImage2" alt="">
         </button>
       </div>
       <div class="hero-navigation" aria-label="Featured recommendations">
