@@ -564,7 +564,7 @@ function stepMarquee(timestamp) {
     const signed = (itemCenter - centerX) / (stageRect.width / 2);
     const grow = Math.min(Math.abs(signed), 1);
     // Cards are born tiny at the center split and grow/tilt as they travel outward.
-    item.style.transform = `rotateY(${Math.sign(signed) * grow * 30}deg) scale(${0.35 + grow * 0.65})`;
+    item.style.transform = `rotateY(${Math.sign(signed) * grow * 30}deg) scaleX(${0.86 + grow * 0.14}) scaleY(${0.35 + grow * 0.65})`;
     item.style.zIndex = String(Math.round(grow * 100));
   });
 
@@ -573,7 +573,7 @@ function stepMarquee(timestamp) {
 
 function startFeaturedRotation() {
   if (marquee.rafId) return;
-  marquee.speed = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 46;
+  marquee.speed = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 18 : 46;
   marquee.lastTimestamp = null;
   marquee.rafId = requestAnimationFrame(stepMarquee);
 }
