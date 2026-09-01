@@ -240,7 +240,7 @@
     /* Featured movie carousel with automatic progress and manual controls. */
     .hero {
       position: relative;
-      min-height: 780px;
+      min-height: 820px;
       overflow: hidden;
       color: #ffffff;
       border: 1px solid var(--line);
@@ -293,40 +293,15 @@
     }
     .hero p { max-width: 590px; margin: 14px auto 22px; color: #b8bac0; line-height: 1.6; }
 
-    /* Data-driven meta nodes echo melius.com's tagged, connected workflow cards. */
-    .hero-meta-row { position: relative; z-index: 3; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 4px; }
-    .hero-node {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 10px 5px 8px;
-      border: 1px solid rgba(255, 255, 255, .14);
-      border-radius: 7px;
-      background: rgba(255, 255, 255, .045);
-      backdrop-filter: blur(6px);
-    }
-    .hero-node-dot { width: 6px; height: 6px; flex: 0 0 auto; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
-    .hero-node-tag {
-      padding: 2px 7px;
-      color: var(--accent-ink);
-      background: var(--accent);
-      border-radius: 3px;
-      font-size: 9px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-    }
-    .hero-node strong { overflow: hidden; max-width: 160px; color: #fff; font: 700 12.5px "Space Grotesk", sans-serif; text-overflow: ellipsis; white-space: nowrap; }
-
     /* Continuously scrolling, mirrored-fan marquee (matches melius.com's hero motion). */
-    .hero-stage { position: absolute; right: 0; bottom: 62px; left: 0; height: 300px; overflow: hidden; perspective: 1100px; translate: 0 var(--hero-stage-shift, 0); }
-    .hero-marquee-track { position: absolute; top: 10px; left: 0; display: flex; align-items: center; height: 280px; gap: 16px; transform-style: preserve-3d; will-change: transform; }
+    .hero-stage { position: absolute; right: 0; bottom: 62px; left: 0; height: 370px; overflow: hidden; perspective: 1100px; translate: 0 var(--hero-stage-shift, 0); }
+    .hero-marquee-track { position: absolute; top: 10px; left: 0; display: flex; align-items: center; height: 350px; gap: 18px; transform-style: preserve-3d; will-change: transform; }
     .hero-marquee-item {
       position: relative;
       display: flex;
       flex-direction: column;
       flex: 0 0 auto;
-      width: 150px;
+      width: 190px;
       height: 100%;
       overflow: hidden;
       padding: 0;
@@ -718,10 +693,10 @@
       .filters { grid-template-columns: repeat(2, 1fr); }
       .discovery-bar { grid-template-columns: 1fr; }
       .quick-moods { justify-content: flex-start; }
-      .hero { min-height: 750px; }
-      .hero-stage { height: 270px; }
-      .hero-marquee-track { height: 250px; }
-      .hero-marquee-item { width: 135px; }
+      .hero { min-height: 790px; }
+      .hero-stage { height: 320px; }
+      .hero-marquee-track { height: 300px; }
+      .hero-marquee-item { width: 165px; }
       .ticker-heading { margin-top: 18px; }
       .ticker-movie { min-width: 220px; }
     }
@@ -743,15 +718,14 @@
       .search { min-width: 0; padding: 10px 12px; }
       .search-button { padding: 0 13px; }
       main { width: min(100% - 24px, 1240px); margin-top: 14px; }
-      .hero { min-height: 640px; }
+      .hero { min-height: 680px; }
       .hero-content { width: 100%; padding: 34px 18px 0; }
       .hero-content h1 { font-size: clamp(38px, 11vw, 52px); }
-      .hero-meta-row { display: none; }
       #heroTitle { display: -webkit-box; font-size: 0.55em; white-space: normal; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
       .hero-content p { display: -webkit-box; overflow: hidden; font-size: 14px; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
-      .hero-stage { bottom: 56px; height: 235px; }
-      .hero-marquee-track { height: 215px; }
-      .hero-marquee-item { width: 115px; }
+      .hero-stage { bottom: 56px; height: 260px; }
+      .hero-marquee-track { height: 240px; }
+      .hero-marquee-item { width: 130px; }
       .discovery-bar { margin-top: 18px; }
       .quick-moods { flex-wrap: nowrap; margin-right: -12px; padding: 2px 12px 4px 0; overflow-x: auto; scrollbar-width: none; }
       .quick-moods::-webkit-scrollbar { display: none; }
@@ -784,7 +758,7 @@
       .brand { padding-right: 48px; }
       .filters { grid-template-columns: 1fr; }
       .filters .secondary { grid-column: auto; }
-      .hero { min-height: 640px; }
+      .hero { min-height: 680px; }
       .hero p { font-size: 14px; }
       .card-actions button { padding: 7px 4px; font-size: 12px; }
     }
@@ -826,12 +800,6 @@
         <div class="hero-actions">
           <button id="heroDetails" class="primary">View details</button>
           <button id="surpriseButton" class="secondary">Surprise me</button>
-        </div>
-        <div class="hero-meta-row">
-          <div class="hero-node"><span class="hero-node-dot" aria-hidden="true"></span><span class="hero-node-tag">Genre</span><strong id="heroMetaGenre">—</strong></div>
-          <div class="hero-node"><span class="hero-node-dot" aria-hidden="true"></span><span class="hero-node-tag">Mood</span><strong id="heroMetaMood">—</strong></div>
-          <div class="hero-node"><span class="hero-node-dot" aria-hidden="true"></span><span class="hero-node-tag">Director</span><strong id="heroMetaDirector">—</strong></div>
-          <div class="hero-node"><span class="hero-node-dot" aria-hidden="true"></span><span class="hero-node-tag">Rating</span><strong id="heroMetaRating">—</strong></div>
         </div>
       </div>
       <div id="heroStage" class="hero-stage" aria-label="Featured movies">

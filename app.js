@@ -491,10 +491,6 @@ function updateFeaturedInfo(movie) {
   state.featuredIndex = movieIndex;
   document.querySelector("#heroAmbientImage").src = movie.backdrop;
   document.querySelector("#heroTitle").textContent = movie.title;
-  document.querySelector("#heroMetaGenre").textContent = movie.genres[0] || "\u2014";
-  document.querySelector("#heroMetaMood").textContent = movie.moods[0] || "\u2014";
-  document.querySelector("#heroMetaDirector").textContent = movie.director || "\u2014";
-  document.querySelector("#heroMetaRating").textContent = `\u2605 ${movie.rating.toFixed(1)} \u00b7 ${movie.year}`;
   document.querySelector("#heroOverview").textContent = movie.overview;
   document.querySelectorAll("#heroDots [data-featured]").forEach((dot, index) => {
     dot.classList.toggle("active", index === movieIndex);
