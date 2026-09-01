@@ -498,6 +498,8 @@ function buildFeaturedMarquee() {
   rightTrack.innerHTML = trackMarkup(rightMovies);
   leftTrack.innerHTML = trackMarkup(leftMovies);
   const heroMovies = featuredMovies();
+  const ambientImg = document.querySelector("#heroAmbientImage");
+  if (ambientImg && !ambientImg.src && heroMovies[0]) ambientImg.src = heroMovies[0].backdrop;
   document.querySelector("#heroDots").innerHTML = heroMovies.map((movie, movieIndex) => `
     <button class="hero-dot ${movieIndex === state.featuredIndex ? "active" : ""}" data-featured="${movieIndex}" aria-label="Show ${escapeHtml(movie.title)}"></button>
   `).join("");
