@@ -395,6 +395,8 @@
     .ticker-movie strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: "Space Grotesk", sans-serif; }
     .ticker-movie span { color: var(--accent); font-size: 18px; }
     .ticker-dot { display: inline-block; width: 6px; height: 6px; margin-right: 6px; vertical-align: middle; border-radius: 50%; background: var(--accent); }
+    .ticker-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 22px 0 10px; }
+    .ticker-heading p { margin: 0; color: var(--muted); font-size: 13px; }
 
     .primary, .secondary, .icon-button {
       border: 0;
@@ -872,7 +874,11 @@
 
     <div class="section-divider" aria-hidden="true"></div>
 
-    <section class="movie-ticker" aria-label="Featured movie lineup">
+    <div class="ticker-heading">
+      <span class="eyebrow">Trending now</span>
+      <p>More top-rated picks beyond today's feature</p>
+    </div>
+    <section class="movie-ticker" aria-label="Trending movies">
       <div id="movieTicker" class="movie-ticker-track"></div>
     </section>
 

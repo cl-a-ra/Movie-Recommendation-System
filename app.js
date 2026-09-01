@@ -481,7 +481,12 @@ function startFeaturedRotation() {
 }
 
 function renderMovieTicker() {
-  const tickerMovies = featuredMovies().map((movie) => `
+  // Show titles beyond the hero's rotation so this row isn't just a repeat of it.
+  const featuredIds = new Set(featuredMovies().map((movie) => movie.id));
+  const trendingMovies = state.movies
+    .filter((movie) => !featuredIds.has(movie.id))
+    .sort((first, second) => second.rating - first.rating);
+  const tickerMovies = trendingMovies.map((movie) => `
     <button class="ticker-movie" data-ticker-movie="${movie.id}" type="button">
       <img src="${escapeHtml(movie.backdrop)}" alt="">
       <strong><span class="ticker-dot" aria-hidden="true"></span>${escapeHtml(movie.title)}</strong>
