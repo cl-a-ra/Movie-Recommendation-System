@@ -463,12 +463,13 @@ function featuredMovies() {
 
 function buildFeaturedMarquee() {
   const movies = featuredMovies();
-  const track = document.querySelector("#heroMarqueeTrack");
-  if (!movies.length || !track) return;
-  const loops = 4;
+  const leftTrack = document.querySelector("#heroMarqueeLeft");
+  const rightTrack = document.querySelector("#heroMarqueeRight");
+  if (!movies.length || !leftTrack || !rightTrack) return;
+  const loops = 3;
   const items = [];
   for (let loop = 0; loop < loops; loop += 1) movies.forEach((movie) => items.push(movie));
-  track.innerHTML = items.map((movie) => `
+  const markup = items.map((movie) => `
     <button class="hero-marquee-item" data-movie-id="${movie.id}" type="button" aria-label="View ${escapeHtml(movie.title)} details">
       <span class="poster-tag">${escapeHtml(movie.type)}</span>
       <img src="${escapeHtml(movie.poster)}" alt="">
@@ -478,6 +479,9 @@ function buildFeaturedMarquee() {
       </span>
     </button>
   `).join("");
+  // Identical content + shared offset keeps the two streams perfectly mirrored.
+  rightTrack.innerHTML = markup;
+  leftTrack.innerHTML = markup;
   document.querySelector("#heroDots").innerHTML = movies.map((movie, movieIndex) => `
     <button class="hero-dot ${movieIndex === state.featuredIndex ? "active" : ""}" data-featured="${movieIndex}" aria-label="Show ${escapeHtml(movie.title)}"></button>
   `).join("");
@@ -499,11 +503,8 @@ function updateFeaturedInfo(movie) {
 }
 
 function jumpFeaturedBy(steps) {
-  const movies = featuredMovies();
-  if (!movies.length || !marquee.itemWidth) return;
+  if (!marquee.itemWidth) return;
   marquee.offset += steps * marquee.itemWidth;
-  const loopWidth = marquee.itemWidth * movies.length;
-  while (marquee.offset < loopWidth) marquee.offset += loopWidth;
 }
 
 function jumpFeaturedTo(targetIndex) {
@@ -516,43 +517,47 @@ function jumpFeaturedTo(targetIndex) {
 }
 
 function stepMarquee(timestamp) {
-  const track = document.querySelector("#heroMarqueeTrack");
   const stage = document.querySelector("#heroStage");
-  if (!track || !stage) return;
+  const leftTrack = document.querySelector("#heroMarqueeLeft");
+  const rightTrack = document.querySelector("#heroMarqueeRight");
+  if (!stage || !leftTrack || !rightTrack) return;
   if (marquee.lastTimestamp == null) marquee.lastTimestamp = timestamp;
   const delta = Math.min((timestamp - marquee.lastTimestamp) / 1000, 0.1);
   marquee.lastTimestamp = timestamp;
 
   if (!marquee.itemWidth) {
-    const firstItem = track.querySelector(".hero-marquee-item");
-    const trackStyle = firstItem && getComputedStyle(track);
+    const firstItem = rightTrack.querySelector(".hero-marquee-item");
+    const trackStyle = firstItem && getComputedStyle(rightTrack);
     // offsetWidth ignores the per-frame rotate/scale transforms, unlike getBoundingClientRect.
     if (firstItem) marquee.itemWidth = firstItem.offsetWidth + parseFloat(trackStyle.columnGap || "0");
-    if (marquee.itemWidth) {
-      const movies = featuredMovies();
-      marquee.offset = marquee.itemWidth * movies.length - stage.getBoundingClientRect().width / 2 + marquee.itemWidth / 2;
-    }
+    marquee.offset = 0;
   }
+  const loopWidth = marquee.itemWidth * featuredMovies().length;
 
   if (!marquee.paused && marquee.itemWidth) {
     marquee.offset += marquee.speed * delta;
-    const loopWidth = marquee.itemWidth * featuredMovies().length;
-    if (loopWidth > 0 && marquee.offset >= loopWidth * 2) marquee.offset -= loopWidth;
   }
-  track.style.transform = `translateX(${-marquee.offset}px)`;
+  if (loopWidth > 0) {
+    while (marquee.offset >= loopWidth) marquee.offset -= loopWidth;
+    while (marquee.offset < 0) marquee.offset += loopWidth;
+  }
+  // Same offset drives both streams outward from the center split.
+  rightTrack.style.transform = `translateX(${marquee.offset - loopWidth}px)`;
+  leftTrack.style.transform = `translateX(${loopWidth - marquee.offset}px)`;
 
   const stageRect = stage.getBoundingClientRect();
   const centerX = stageRect.left + stageRect.width / 2;
   let closestItem = null;
   let closestDistance = Infinity;
-  track.querySelectorAll(".hero-marquee-item").forEach((item) => {
+  stage.querySelectorAll(".hero-marquee-item").forEach((item) => {
     const rect = item.getBoundingClientRect();
     const itemCenter = rect.left + rect.width / 2;
+    const signed = (itemCenter - centerX) / (stageRect.width / 2);
+    const grow = Math.min(Math.abs(signed), 1);
+    // Cards are born tiny at the center split and grow/tilt as they travel outward.
+    item.style.transform = `rotateY(${Math.sign(signed) * grow * 30}deg) scale(${0.35 + grow * 0.65})`;
+    item.style.zIndex = String(Math.round(grow * 100));
     const distance = Math.abs(itemCenter - centerX);
-    const normalized = Math.max(-1, Math.min(1, (itemCenter - centerX) / (stageRect.width / 2)));
-    item.style.transform = `rotateY(${normalized * 24}deg) scale(${1 - Math.abs(normalized) * 0.12})`;
-    item.style.opacity = String(Math.max(0.55, 1 - Math.abs(normalized) * 0.4));
-    item.style.zIndex = String(1000 - Math.round(distance));
     if (distance < closestDistance) {
       closestDistance = distance;
       closestItem = item;

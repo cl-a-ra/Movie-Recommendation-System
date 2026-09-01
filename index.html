@@ -295,15 +295,19 @@
     }
     .hero p { max-width: 590px; margin: 14px auto 22px; color: var(--muted); line-height: 1.6; }
 
-    /* Continuously scrolling, mirrored-fan marquee (matches melius.com's hero motion). */
+    /* Mirror-split marquee: cards emerge tiny at the center line, the left stream
+       flows left and the right stream flows right, growing as they travel outward. */
     .hero-stage { position: absolute; right: 0; bottom: 62px; left: 0; height: 410px; overflow: hidden; perspective: 1100px; translate: 0 var(--hero-stage-shift, 0); }
-    .hero-marquee-track { position: absolute; top: 4px; left: 0; display: flex; align-items: center; height: 330px; gap: 18px; transform-style: preserve-3d; will-change: transform; }
+    .hero-marquee-half { position: absolute; top: 0; bottom: 0; width: 50%; overflow: hidden; display: flex; align-items: center; transform-style: preserve-3d; }
+    .hero-marquee-half-left { left: 0; justify-content: flex-end; }
+    .hero-marquee-half-right { right: 0; justify-content: flex-start; }
+    .hero-marquee-track { display: flex; align-items: center; flex: 0 0 auto; height: 330px; gap: 8px; transform-style: preserve-3d; will-change: transform; }
     .hero-marquee-item {
       position: relative;
       display: flex;
       flex-direction: column;
       flex: 0 0 auto;
-      width: 185px;
+      width: 200px;
       height: 100%;
       overflow: hidden;
       padding: 0;
@@ -314,8 +318,6 @@
       box-shadow: var(--shadow);
       cursor: pointer;
       transform-style: preserve-3d;
-      /* Faded floor reflection below each card, like an awwwards-style mirror. */
-      -webkit-box-reflect: below 10px linear-gradient(transparent 62%, rgba(0, 0, 0, 0.3));
     }
     .hero-marquee-item .poster-tag { top: 6px; left: 6px; }
     .hero-marquee-item:hover { border-color: var(--accent); }
@@ -808,7 +810,8 @@
         </div>
       </div>
       <div id="heroStage" class="hero-stage" aria-label="Featured movies">
-        <div id="heroMarqueeTrack" class="hero-marquee-track"></div>
+        <div class="hero-marquee-half hero-marquee-half-left"><div id="heroMarqueeLeft" class="hero-marquee-track"></div></div>
+        <div class="hero-marquee-half hero-marquee-half-right"><div id="heroMarqueeRight" class="hero-marquee-track"></div></div>
       </div>
       <div class="hero-navigation" aria-label="Featured recommendations">
         <button id="heroPrevious" class="hero-nav-button" aria-label="Previous featured movie" title="Previous movie">←</button>
