@@ -247,11 +247,6 @@
     .hero-ambient img { width: 100%; height: 100%; object-fit: cover; filter: blur(28px) saturate(1.35); transform: scale(1.08); animation: ambient-drift 12s ease-in-out infinite alternate; }
     .hero::before { display: none; }
     .hero::after { display: none; }
-    .hero-changing .hero-ambient img { animation: ambient-change 900ms both, ambient-drift 12s 900ms ease-in-out infinite alternate; }
-    .hero-changing[data-direction="forward"] .hero-preview { animation: stage-forward 680ms cubic-bezier(.2,.8,.2,1) both; }
-    .hero-changing[data-direction="backward"] .hero-preview { animation: stage-backward 680ms cubic-bezier(.2,.8,.2,1) both; }
-    .hero-changing .hero-preview-current { animation-delay: 60ms; }
-    .hero-changing .hero-content { animation: hero-content-in 560ms 120ms cubic-bezier(.2,.8,.2,1) both; }
 
     .hero-content {
       position: relative;
@@ -317,36 +312,25 @@
     }
     .hero-node strong { overflow: hidden; max-width: 160px; color: #fff; font: 700 12.5px "Space Grotesk", sans-serif; text-overflow: ellipsis; white-space: nowrap; }
 
-    .hero-stage { --stage-x: 0deg; --stage-y: 0deg; position: absolute; right: 0; bottom: 62px; left: 0; height: 300px; perspective: 1100px; translate: 0 var(--hero-stage-shift, 0); touch-action: pan-y; }
-    .hero-preview { position: absolute; top: 28px; height: 230px; overflow: hidden; padding: 0; color: white; text-align: left; border: 1px solid #2c2e31; border-radius: 8px; background: #111316; box-shadow: 0 20px 60px rgba(0,0,0,.5); transition: opacity 320ms ease, transform 320ms ease, filter 320ms ease; }
-    .hero-preview img { position: static; width: 100%; height: 100%; object-fit: cover; }
-    .hero-preview::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 46%, rgba(0,0,0,.88)); }
-    .hero-preview-side { z-index: 1; width: 26%; opacity: 0.6; filter: saturate(.7); }
-    .hero-preview-side:hover { opacity: .9; filter: saturate(1); }
-    .hero-preview-side span { position: absolute; z-index: 2; right: 16px; bottom: 14px; left: 16px; overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
-    .hero-preview-previous { left: 10%; transform: rotateY(12deg); }
-    .hero-preview-next { right: 10%; transform: rotateY(-12deg); }
-    .hero-preview-current { z-index: 2; top: 0; left: 50%; width: 54%; height: 280px; transform: translateX(-50%) rotateX(var(--stage-y)) rotateY(var(--stage-x)); }
-    .hero-preview-current:hover { transform: translateX(-50%) rotateX(var(--stage-y)) rotateY(var(--stage-x)) translateY(-5px); }
-    .hero-preview-far { z-index: 0; top: 40px; width: 16%; height: 205px; opacity: .55; filter: saturate(.6) brightness(.88); }
-    .hero-preview-far:hover { opacity: .8; }
-    .hero-preview-previous-far { left: 0%; transform: rotateY(28deg); }
-    .hero-preview-next-far { right: 0%; transform: rotateY(-28deg); }
-    .hero-card-copy { position: absolute; z-index: 2; right: 22px; bottom: 19px; left: 22px; }
-    .hero-card-copy small {
-      display: inline-block;
-      margin-bottom: 6px;
-      padding: 2px 8px;
-      color: var(--accent-ink);
-      background: var(--accent);
-      border-radius: 3px;
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .04em;
+    /* Continuously scrolling, mirrored-fan marquee (matches melius.com's hero motion). */
+    .hero-stage { position: absolute; right: 0; bottom: 62px; left: 0; height: 300px; overflow: hidden; perspective: 1100px; translate: 0 var(--hero-stage-shift, 0); }
+    .hero-marquee-track { position: absolute; top: 28px; left: 0; display: flex; align-items: center; height: 230px; gap: 16px; transform-style: preserve-3d; will-change: transform; }
+    .hero-marquee-item {
+      position: relative;
+      flex: 0 0 auto;
+      width: 230px;
+      height: 100%;
+      overflow: hidden;
+      padding: 0;
+      border: 1px solid #2c2e31;
+      border-radius: 8px;
+      background: #111316;
+      box-shadow: 0 20px 60px rgba(0,0,0,.5);
+      cursor: pointer;
+      transform-style: preserve-3d;
     }
-    .hero-card-copy strong { display: block; overflow: hidden; font: 700 clamp(18px, 2.5vw, 30px) "Space Grotesk", sans-serif; text-overflow: ellipsis; white-space: nowrap; }
-    .hero-node-header-meta { position: absolute; z-index: 2; top: 10px; right: 14px; color: rgba(255, 255, 255, .78); font-size: 11px; font-weight: 700; letter-spacing: .02em; }
+    .hero-marquee-item img { width: 100%; height: 100%; object-fit: cover; }
+    .hero-marquee-item::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,.65)); }
 
     .hero-navigation {
       position: absolute;
@@ -374,9 +358,6 @@
     .hero-dots { display: flex; gap: 6px; }
     .hero-dot { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.45); }
     .hero-dot.active { width: 22px; border-radius: 5px; background: var(--accent); }
-    .hero-progress { position: absolute; z-index: 2; left: 0; bottom: 0; width: 100%; height: 3px; overflow: hidden; background: rgba(255, 255, 255, 0.15); }
-    .hero-progress::after { content: ""; display: block; width: 100%; height: 100%; background: var(--gradient); transform-origin: left; }
-    .hero-changing .hero-progress::after { animation: hero-progress 4s linear both; }
 
     /* Thin gradient bar echoes the orange-to-blue divider used between melius.com sections. */
     .section-divider { height: 4px; margin: 18px 0 0; border-radius: 999px; background: var(--gradient); opacity: .85; }
@@ -714,11 +695,6 @@
     @keyframes gradient-drift { to { background-position: 200% 0; } }
     @keyframes launcher-pulse { 0%, 100% { box-shadow: var(--shadow), 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); } 50% { box-shadow: var(--shadow), 0 0 0 12px color-mix(in srgb, var(--accent) 0%, transparent); } }
     @keyframes ambient-drift { from { transform: scale(1.08) translate3d(-1.5%, -1%, 0); } to { transform: scale(1.14) translate3d(1.5%, 1%, 0); } }
-    @keyframes ambient-change { from { opacity: .25; transform: scale(1.18); } }
-    @keyframes stage-forward { from { opacity: 0; translate: 13% 12px; scale: .94; } }
-    @keyframes stage-backward { from { opacity: 0; translate: -13% 12px; scale: .94; } }
-    @keyframes hero-content-in { from { opacity: 0; transform: translateY(18px); filter: blur(5px); } }
-    @keyframes hero-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
     @keyframes ticker-flow { to { transform: translateX(-50%); } }
     @keyframes pulse-ring { from { opacity: 0.8; transform: scale(0.65); } to { opacity: 0; transform: scale(1.35); } }
 
@@ -733,9 +709,8 @@
       .quick-moods { justify-content: flex-start; }
       .hero { min-height: 750px; }
       .hero-stage { height: 270px; }
-      .hero-preview-current { width: 62%; height: 250px; }
-      .hero-preview-side { width: 30%; height: 205px; }
-      .hero-preview-far { display: none; }
+      .hero-marquee-track { height: 205px; }
+      .hero-marquee-item { width: 190px; }
       .ticker-movie { min-width: 220px; }
     }
 
@@ -763,11 +738,8 @@
       #heroTitle { display: -webkit-box; font-size: 0.55em; white-space: normal; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
       .hero-content p { display: -webkit-box; overflow: hidden; font-size: 14px; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
       .hero-stage { bottom: 56px; height: 235px; }
-      .hero-preview-current { width: 74%; height: 220px; }
-      .hero-preview-side { top: 22px; width: 34%; height: 180px; }
-      .hero-preview-previous { left: -8%; }
-      .hero-preview-next { right: -8%; }
-      .hero-preview-side span { display: none; }
+      .hero-marquee-track { height: 180px; }
+      .hero-marquee-item { width: 150px; }
       .discovery-bar { margin-top: 18px; }
       .quick-moods { flex-wrap: nowrap; margin-right: -12px; padding: 2px 12px 4px 0; overflow-x: auto; scrollbar-width: none; }
       .quick-moods::-webkit-scrollbar { display: none; }
@@ -847,35 +819,17 @@
           <div class="hero-node"><span class="hero-node-dot" aria-hidden="true"></span><span class="hero-node-tag">Genre</span><strong id="heroMetaGenre">—</strong></div>
           <div class="hero-node"><span class="hero-node-dot" aria-hidden="true"></span><span class="hero-node-tag">Mood</span><strong id="heroMetaMood">—</strong></div>
           <div class="hero-node"><span class="hero-node-dot" aria-hidden="true"></span><span class="hero-node-tag">Director</span><strong id="heroMetaDirector">—</strong></div>
+          <div class="hero-node"><span class="hero-node-dot" aria-hidden="true"></span><span class="hero-node-tag">Rating</span><strong id="heroMetaRating">—</strong></div>
         </div>
       </div>
-      <div id="heroStage" class="hero-stage">
-        <button id="heroPreviousPreview2" class="hero-preview hero-preview-far hero-preview-previous-far" aria-label="Show earlier featured movie" tabindex="-1">
-          <img id="heroPreviousImage2" alt="">
-        </button>
-        <button id="heroPreviousPreview" class="hero-preview hero-preview-side hero-preview-previous" aria-label="Show previous featured movie">
-          <img id="heroPreviousImage" alt="">
-          <span id="heroPreviousTitle"></span>
-        </button>
-        <button id="heroCurrentPreview" class="hero-preview hero-preview-current" aria-label="View featured movie details">
-          <img id="heroImage" alt="Featured movie backdrop">
-          <span class="hero-node-header-meta" id="heroCardMeta"></span>
-          <span class="hero-card-copy"><small>Now featured</small><strong id="heroCardTitle"></strong></span>
-        </button>
-        <button id="heroNextPreview" class="hero-preview hero-preview-side hero-preview-next" aria-label="Show next featured movie">
-          <img id="heroNextImage" alt="">
-          <span id="heroNextTitle"></span>
-        </button>
-        <button id="heroNextPreview2" class="hero-preview hero-preview-far hero-preview-next-far" aria-label="Show later featured movie" tabindex="-1">
-          <img id="heroNextImage2" alt="">
-        </button>
+      <div id="heroStage" class="hero-stage" aria-label="Featured movies">
+        <div id="heroMarqueeTrack" class="hero-marquee-track"></div>
       </div>
       <div class="hero-navigation" aria-label="Featured recommendations">
         <button id="heroPrevious" class="hero-nav-button" aria-label="Previous featured movie" title="Previous movie">←</button>
         <div id="heroDots" class="hero-dots"></div>
         <button id="heroNext" class="hero-nav-button" aria-label="Next featured movie" title="Next movie">→</button>
       </div>
-      <div class="hero-progress" aria-hidden="true"></div>
     </section>
 
     <div class="section-divider" aria-hidden="true"></div>

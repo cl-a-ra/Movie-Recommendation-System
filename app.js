@@ -15,7 +15,6 @@ const state = {
   searchRequestId: 0,
   selectedMovie: null,
   featuredIndex: 0,
-  featuredTimer: null,
   user: null,
 };
 
@@ -431,59 +430,134 @@ async function makeRecommendations() {
   render();
 }
 
-// ---------- Featured recommendation carousel ----------
+// ---------- Featured recommendation marquee ----------
+// Continuously scrolling, mirrored-fan carousel modeled on melius.com's hero motion:
+// a repeated strip of cards drifts sideways while each card's tilt/scale/opacity is
+// recomputed every frame from its live distance to the stage's center.
+const marquee = {
+  offset: 0,
+  speed: 46,
+  itemWidth: 0,
+  paused: false,
+  lastTimestamp: null,
+  rafId: null,
+  centered: false,
+};
+
 function featuredMovies() {
   return state.movies.slice(0, 5);
 }
 
-function showFeaturedMovie(index) {
+function buildFeaturedMarquee() {
   const movies = featuredMovies();
-  if (!movies.length) return;
-
-  const previousIndex = state.featuredIndex;
-  state.featuredIndex = (index + movies.length) % movies.length;
-  const featured = movies[state.featuredIndex];
-  const previous = movies[(state.featuredIndex - 1 + movies.length) % movies.length];
-  const next = movies[(state.featuredIndex + 1) % movies.length];
-  const previous2 = movies[(state.featuredIndex - 2 + movies.length) % movies.length];
-  const next2 = movies[(state.featuredIndex + 2) % movies.length];
-  const hero = document.querySelector("#hero");
-  hero.dataset.direction = index < previousIndex ? "backward" : "forward";
-  hero.classList.remove("hero-changing");
-  void hero.offsetWidth;
-  hero.classList.add("hero-changing");
-  document.querySelector("#heroAmbientImage").src = featured.backdrop;
-  document.querySelector("#heroImage").src = featured.backdrop;
-  document.querySelector("#heroImage").alt = `${featured.title} backdrop`;
-  document.querySelector("#heroTitle").textContent = featured.title;
-  document.querySelector("#heroCardTitle").textContent = featured.title;
-  document.querySelector("#heroCardMeta").textContent = `\u2605 ${featured.rating.toFixed(1)} \u00b7 ${featured.year}`;
-  document.querySelector("#heroMetaGenre").textContent = featured.genres[0] || "\u2014";
-  document.querySelector("#heroMetaMood").textContent = featured.moods[0] || "\u2014";
-  document.querySelector("#heroMetaDirector").textContent = featured.director || "\u2014";
-  document.querySelector("#heroOverview").textContent = featured.overview;
-  document.querySelector("#heroPreviousImage").src = previous.backdrop;
-  document.querySelector("#heroPreviousImage").alt = `${previous.title} backdrop`;
-  document.querySelector("#heroPreviousTitle").textContent = previous.title;
-  document.querySelector("#heroNextImage").src = next.backdrop;
-  document.querySelector("#heroNextImage").alt = `${next.title} backdrop`;
-  document.querySelector("#heroNextTitle").textContent = next.title;
-  document.querySelector("#heroPreviousImage2").src = previous2.backdrop;
-  document.querySelector("#heroPreviousImage2").alt = `${previous2.title} backdrop`;
-  document.querySelector("#heroNextImage2").src = next2.backdrop;
-  document.querySelector("#heroNextImage2").alt = `${next2.title} backdrop`;
-  document.querySelectorAll("[data-ticker-movie]").forEach((button) => {
-    button.classList.toggle("active", button.dataset.tickerMovie === String(featured.id));
-  });
+  const track = document.querySelector("#heroMarqueeTrack");
+  if (!movies.length || !track) return;
+  const loops = 4;
+  const items = [];
+  for (let loop = 0; loop < loops; loop += 1) movies.forEach((movie) => items.push(movie));
+  track.innerHTML = items.map((movie) => `
+    <button class="hero-marquee-item" data-movie-id="${movie.id}" type="button" aria-label="View ${escapeHtml(movie.title)} details">
+      <img src="${escapeHtml(movie.backdrop)}" alt="">
+    </button>
+  `).join("");
   document.querySelector("#heroDots").innerHTML = movies.map((movie, movieIndex) => `
     <button class="hero-dot ${movieIndex === state.featuredIndex ? "active" : ""}" data-featured="${movieIndex}" aria-label="Show ${escapeHtml(movie.title)}"></button>
   `).join("");
 }
 
+function updateFeaturedInfo(movie) {
+  const movies = featuredMovies();
+  const movieIndex = movies.findIndex((item) => item.id === movie.id);
+  if (movieIndex === -1) return;
+  if (movieIndex === state.featuredIndex && marquee.centered) return;
+  marquee.centered = true;
+  state.featuredIndex = movieIndex;
+  document.querySelector("#heroAmbientImage").src = movie.backdrop;
+  document.querySelector("#heroTitle").textContent = movie.title;
+  document.querySelector("#heroMetaGenre").textContent = movie.genres[0] || "\u2014";
+  document.querySelector("#heroMetaMood").textContent = movie.moods[0] || "\u2014";
+  document.querySelector("#heroMetaDirector").textContent = movie.director || "\u2014";
+  document.querySelector("#heroMetaRating").textContent = `\u2605 ${movie.rating.toFixed(1)} \u00b7 ${movie.year}`;
+  document.querySelector("#heroOverview").textContent = movie.overview;
+  document.querySelectorAll("#heroDots [data-featured]").forEach((dot, index) => {
+    dot.classList.toggle("active", index === movieIndex);
+  });
+}
+
+function jumpFeaturedBy(steps) {
+  const movies = featuredMovies();
+  if (!movies.length || !marquee.itemWidth) return;
+  marquee.offset += steps * marquee.itemWidth;
+  const loopWidth = marquee.itemWidth * movies.length;
+  while (marquee.offset < loopWidth) marquee.offset += loopWidth;
+}
+
+function jumpFeaturedTo(targetIndex) {
+  const movies = featuredMovies();
+  if (!movies.length) return;
+  let diff = (targetIndex - state.featuredIndex) % movies.length;
+  if (diff > movies.length / 2) diff -= movies.length;
+  if (diff < -movies.length / 2) diff += movies.length;
+  jumpFeaturedBy(diff);
+}
+
+function stepMarquee(timestamp) {
+  const track = document.querySelector("#heroMarqueeTrack");
+  const stage = document.querySelector("#heroStage");
+  if (!track || !stage) return;
+  if (marquee.lastTimestamp == null) marquee.lastTimestamp = timestamp;
+  const delta = Math.min((timestamp - marquee.lastTimestamp) / 1000, 0.1);
+  marquee.lastTimestamp = timestamp;
+
+  if (!marquee.itemWidth) {
+    const firstItem = track.querySelector(".hero-marquee-item");
+    const trackStyle = firstItem && getComputedStyle(track);
+    // offsetWidth ignores the per-frame rotate/scale transforms, unlike getBoundingClientRect.
+    if (firstItem) marquee.itemWidth = firstItem.offsetWidth + parseFloat(trackStyle.columnGap || "0");
+    if (marquee.itemWidth) {
+      const movies = featuredMovies();
+      marquee.offset = marquee.itemWidth * movies.length - stage.getBoundingClientRect().width / 2 + marquee.itemWidth / 2;
+    }
+  }
+
+  if (!marquee.paused && marquee.itemWidth) {
+    marquee.offset += marquee.speed * delta;
+    const loopWidth = marquee.itemWidth * featuredMovies().length;
+    if (loopWidth > 0 && marquee.offset >= loopWidth * 2) marquee.offset -= loopWidth;
+  }
+  track.style.transform = `translateX(${-marquee.offset}px)`;
+
+  const stageRect = stage.getBoundingClientRect();
+  const centerX = stageRect.left + stageRect.width / 2;
+  let closestItem = null;
+  let closestDistance = Infinity;
+  track.querySelectorAll(".hero-marquee-item").forEach((item) => {
+    const rect = item.getBoundingClientRect();
+    const itemCenter = rect.left + rect.width / 2;
+    const distance = Math.abs(itemCenter - centerX);
+    const normalized = Math.max(-1.4, Math.min(1.4, (itemCenter - centerX) / (stageRect.width / 2)));
+    item.style.transform = `rotateY(${normalized * 32}deg) scale(${1 - Math.min(Math.abs(normalized), 1) * 0.3})`;
+    item.style.opacity = String(Math.max(0.16, 1 - Math.min(Math.abs(normalized), 1) * 0.75));
+    item.style.zIndex = String(1000 - Math.round(distance));
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestItem = item;
+    }
+  });
+
+  if (closestItem) {
+    const movie = featuredMovies().find((item) => item.id === closestItem.dataset.movieId);
+    if (movie) updateFeaturedInfo(movie);
+  }
+
+  marquee.rafId = requestAnimationFrame(stepMarquee);
+}
+
 function startFeaturedRotation() {
-  window.clearInterval(state.featuredTimer);
-  if (featuredMovies().length < 2) return;
-  state.featuredTimer = window.setInterval(() => showFeaturedMovie(state.featuredIndex + 1), 4000);
+  if (marquee.rafId) return;
+  marquee.speed = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 46;
+  marquee.lastTimestamp = null;
+  marquee.rafId = requestAnimationFrame(stepMarquee);
 }
 
 function renderMovieTicker() {
@@ -749,56 +823,27 @@ function attachEvents() {
 
   document.querySelectorAll(".nav button[data-view]").forEach((button) => button.addEventListener("click", () => changeView(button.dataset.view)));
   document.querySelector("#heroDetails").addEventListener("click", () => showMovie(featuredMovies()[state.featuredIndex].id));
-  document.querySelector("#heroCurrentPreview").addEventListener("click", () => showMovie(featuredMovies()[state.featuredIndex].id));
-  document.querySelector("#heroPreviousPreview").addEventListener("click", () => {
-    showFeaturedMovie(state.featuredIndex - 1);
-    startFeaturedRotation();
-  });
-  document.querySelector("#heroNextPreview").addEventListener("click", () => {
-    showFeaturedMovie(state.featuredIndex + 1);
-    startFeaturedRotation();
-  });
-  document.querySelector("#heroPreviousPreview2").addEventListener("click", () => {
-    showFeaturedMovie(state.featuredIndex - 2);
-    startFeaturedRotation();
-  });
-  document.querySelector("#heroNextPreview2").addEventListener("click", () => {
-    showFeaturedMovie(state.featuredIndex + 2);
-    startFeaturedRotation();
-  });
-  document.querySelector("#heroPrevious").addEventListener("click", () => {
-    showFeaturedMovie(state.featuredIndex - 1);
-    startFeaturedRotation();
-  });
-  document.querySelector("#heroNext").addEventListener("click", () => {
-    showFeaturedMovie(state.featuredIndex + 1);
-    startFeaturedRotation();
-  });
+  document.querySelector("#heroPrevious").addEventListener("click", () => jumpFeaturedBy(-1));
+  document.querySelector("#heroNext").addEventListener("click", () => jumpFeaturedBy(1));
   document.querySelector("#heroDots").addEventListener("click", (event) => {
     const dot = event.target.closest("[data-featured]");
     if (!dot) return;
-    showFeaturedMovie(Number(dot.dataset.featured));
-    startFeaturedRotation();
+    jumpFeaturedTo(Number(dot.dataset.featured));
   });
   const heroStage = document.querySelector("#heroStage");
+  heroStage.addEventListener("click", (event) => {
+    const item = event.target.closest("[data-movie-id]");
+    if (item) showMovie(item.dataset.movieId);
+  });
+  heroStage.addEventListener("mouseenter", () => { marquee.paused = true; });
+  heroStage.addEventListener("mouseleave", () => { marquee.paused = false; });
+  window.addEventListener("resize", () => { marquee.itemWidth = 0; });
   let swipeStartX = null;
   heroStage.addEventListener("pointerdown", (event) => { swipeStartX = event.clientX; });
   heroStage.addEventListener("pointerup", (event) => {
     if (swipeStartX === null || Math.abs(event.clientX - swipeStartX) < 45) return;
-    showFeaturedMovie(state.featuredIndex + (event.clientX < swipeStartX ? 1 : -1));
-    startFeaturedRotation();
+    jumpFeaturedBy(event.clientX < swipeStartX ? 1 : -1);
     swipeStartX = null;
-  });
-  heroStage.addEventListener("pointermove", (event) => {
-    if (event.pointerType !== "mouse") return;
-    const bounds = heroStage.getBoundingClientRect();
-    heroStage.style.setProperty("--stage-x", `${((event.clientX - bounds.left) / bounds.width - 0.5) * 8}deg`);
-    heroStage.style.setProperty("--stage-y", `${((event.clientY - bounds.top) / bounds.height - 0.5) * -6}deg`);
-  });
-  heroStage.addEventListener("pointerleave", () => {
-    swipeStartX = null;
-    heroStage.style.removeProperty("--stage-x");
-    heroStage.style.removeProperty("--stage-y");
   });
   elements.grid.addEventListener("pointermove", (event) => {
     if (event.pointerType !== "mouse") return;
@@ -814,8 +859,6 @@ function attachEvents() {
     card.style.removeProperty("--card-rx");
     card.style.removeProperty("--card-ry");
   });
-  document.querySelector("#hero").addEventListener("mouseenter", () => window.clearInterval(state.featuredTimer));
-  document.querySelector("#hero").addEventListener("mouseleave", startFeaturedRotation);
   document.querySelector("#recommendButton").addEventListener("click", makeRecommendations);
   document.querySelector("#closeDialog").addEventListener("click", () => elements.dialog.close());
   document.querySelector("#dialogWatchlist").addEventListener("click", () => {
@@ -869,7 +912,7 @@ async function startApp() {
   fillSelect(elements.favoriteMovie, state.movies.map((movie) => movie.title));
   [...elements.favoriteMovie.options].forEach((option, index) => { option.value = state.movies[index].id; });
 
-  showFeaturedMovie(0);
+  buildFeaturedMarquee();
   startFeaturedRotation();
   attachEvents();
   setupPageMotion();
