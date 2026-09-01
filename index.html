@@ -8,46 +8,62 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
-    /* Theme tokens keep colors consistent across light and dark modes. */
+    /* Theme tokens keep colors consistent across light and dark modes. AI Studio-inspired: */
+    /* deep space base with an electric violet -> cyan -> magenta gradient system. */
     :root {
-      --ink: #08090b;
-      --muted: #62656b;
-      --paper: #ffffff;
-      --surface: #f5f5f2;
-      --line: #dedfd9;
-      --accent: #d9492f;
-      --accent-dark: #a72d1b;
-      --green: #087b6b;
-      --blue: #315cce;
-      --yellow: #f1bd50;
-      --shadow: 0 22px 60px rgba(8, 9, 11, 0.15);
-      --grid-line: rgba(8, 9, 11, 0.025);
-      --topbar: rgba(255, 255, 255, 0.94);
-      --panel: rgba(245, 245, 242, 0.82);
+      --ink: #14121f;
+      --muted: #64627a;
+      --paper: #f8f7fd;
+      --surface: #ffffff;
+      --line: #e5e2f5;
+      --accent: #6d5efc;
+      --accent-dark: #4f3fe0;
+      --accent-2: #00c2ff;
+      --accent-3: #ff5cc2;
+      --green: #0fae94;
+      --blue: #4c7dfc;
+      --yellow: #f1a93f;
+      --gradient: linear-gradient(135deg, var(--accent-2), var(--accent) 52%, var(--accent-3));
+      --glow: 0 0 1px rgba(109, 94, 252, 0);
+      --shadow: 0 22px 60px rgba(20, 18, 31, 0.14);
+      --grid-line: rgba(20, 18, 31, 0.03);
+      --topbar: rgba(248, 247, 253, 0.86);
+      --panel: rgba(255, 255, 255, 0.78);
+      --aurora-1: rgba(109, 94, 252, 0.20);
+      --aurora-2: rgba(0, 194, 255, 0.16);
+      --aurora-3: rgba(255, 92, 194, 0.16);
     }
 
     :root[data-theme="dark"] {
       color-scheme: dark;
-      --ink: #ffffff;
-      --muted: #a6a8ad;
-      --paper: #08090b;
-      --surface: #111316;
-      --line: #292b2f;
-      --accent: #ee6046;
-      --accent-dark: #c9432d;
-      --green: #54c5a5;
+      --ink: #f4f3fb;
+      --muted: #9a97b8;
+      --paper: #07060f;
+      --surface: #131022;
+      --line: #262244;
+      --accent: #8b7dff;
+      --accent-dark: #6d5efc;
+      --accent-2: #22e1ff;
+      --accent-3: #ff6ec9;
+      --green: #3fd6b8;
       --blue: #7ba2ff;
       --yellow: #f3c969;
-      --shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
-      --grid-line: rgba(255, 255, 255, 0.022);
-      --topbar: rgba(8, 9, 11, 0.94);
-      --panel: rgba(17, 19, 22, 0.86);
+      --gradient: linear-gradient(135deg, var(--accent-2), var(--accent) 52%, var(--accent-3));
+      --glow: 0 0 32px rgba(139, 125, 255, 0.35);
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.6);
+      --grid-line: rgba(139, 125, 255, 0.035);
+      --topbar: rgba(7, 6, 15, 0.82);
+      --panel: rgba(19, 16, 34, 0.72);
+      --aurora-1: rgba(139, 125, 255, 0.3);
+      --aurora-2: rgba(34, 225, 255, 0.22);
+      --aurora-3: rgba(255, 110, 201, 0.22);
     }
 
     /* Global defaults make element sizing and typography predictable. */
     * { box-sizing: border-box; }
 
     body {
+      position: relative;
       margin: 0;
       min-width: 0;
       overflow-x: hidden;
@@ -58,7 +74,25 @@
         var(--paper);
       background-size: 28px 28px;
       font-family: "DM Sans", sans-serif;
+      transition: background 320ms ease, color 320ms ease;
     }
+
+    /* Floating aurora blobs create a soft, magical ambient glow behind the whole app. */
+    body::before {
+      content: "";
+      position: fixed;
+      z-index: 0;
+      inset: -10%;
+      pointer-events: none;
+      background:
+        radial-gradient(38vw 38vw at 10% 8%, var(--aurora-1), transparent 60%),
+        radial-gradient(34vw 34vw at 90% 18%, var(--aurora-2), transparent 60%),
+        radial-gradient(40vw 40vw at 50% 95%, var(--aurora-3), transparent 60%);
+      filter: blur(10px);
+      animation: aurora-float 22s ease-in-out infinite alternate;
+    }
+
+    header, main, .footer { position: relative; z-index: 1; }
 
     html { scroll-behavior: smooth; }
 
@@ -78,7 +112,7 @@
       padding: 14px clamp(18px, 4vw, 64px);
       border-bottom: 1px solid var(--line);
       background: var(--topbar);
-      backdrop-filter: blur(16px);
+      backdrop-filter: blur(20px) saturate(1.4);
       transition: padding 280ms ease, box-shadow 280ms ease, background 280ms ease;
     }
 
@@ -91,7 +125,9 @@
       bottom: -1px;
       left: 0;
       height: 2px;
-      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      background: linear-gradient(90deg, transparent, var(--accent-2), var(--accent), var(--accent-3), transparent);
+      background-size: 200% 100%;
+      animation: gradient-drift 8s linear infinite;
     }
 
     .brand {
@@ -102,14 +138,23 @@
       font: 700 20px "Space Grotesk", sans-serif;
     }
 
+    .brand span:last-child {
+      background: var(--gradient);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: gradient-drift 6s linear infinite;
+    }
+
     .brand-mark {
       position: relative;
       display: block;
       width: 34px;
       height: 34px;
-      background: var(--accent);
+      background: var(--gradient);
       border-radius: 6px;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18), var(--glow);
     }
 
     .brand-mark::before {
@@ -159,11 +204,13 @@
       color: white;
       border: 0;
       border-radius: 999px;
-      background: var(--accent);
+      background: var(--gradient);
+      background-size: 160% auto;
       font-weight: 700;
+      transition: background-position 320ms ease, box-shadow 320ms ease;
     }
 
-    .search-button:hover { background: var(--accent-dark); }
+    .search-button:hover { background-position: 100% 0; box-shadow: var(--glow); }
 
     .nav { display: flex; min-width: 0; gap: 3px; padding: 4px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); }
 
@@ -176,9 +223,7 @@
       font-weight: 700;
     }
 
-    .nav button.active { color: var(--paper); background: var(--ink); }
-
-    :root[data-theme="dark"] .nav button.active { color: white; background: var(--accent); }
+    .nav button.active { color: white; background: var(--gradient); box-shadow: var(--glow); }
 
     .theme-toggle {
       width: 38px;
@@ -189,9 +234,10 @@
       border-radius: 50%;
       background: var(--surface);
       font-size: 17px;
+      transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
     }
 
-    .theme-toggle:hover { border-color: var(--accent); }
+    .theme-toggle:hover { border-color: var(--accent); box-shadow: var(--glow); transform: rotate(18deg); }
 
     .account-button {
       max-width: 120px;
@@ -246,7 +292,19 @@
     .eyebrow { color: var(--yellow); font-size: 12px; font-weight: 700; text-transform: uppercase; }
     h1, h2, h3 { margin: 0; font-family: "Space Grotesk", sans-serif; letter-spacing: 0; }
     h1 { margin-top: 8px; font-size: clamp(42px, 6vw, 74px); line-height: 0.98; }
-    #heroTitle { display: block; overflow: hidden; color: var(--accent); font-size: 0.72em; text-overflow: ellipsis; white-space: nowrap; }
+    #heroTitle {
+      display: block;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--accent-2), var(--accent) 45%, var(--accent-3));
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      font-size: 0.72em;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      animation: gradient-drift 6s linear infinite;
+    }
     .hero p { max-width: 590px; margin: 14px auto 22px; color: #b8bac0; line-height: 1.6; }
 
     .hero-stage { --stage-x: 0deg; --stage-y: 0deg; position: absolute; right: 0; bottom: 62px; left: 0; height: 300px; perspective: 1100px; translate: 0 var(--hero-stage-shift, 0); touch-action: pan-y; }
@@ -313,9 +371,16 @@
       font-weight: 700;
     }
 
-    .primary { padding: 11px 16px; color: white; background: var(--accent); }
-    .primary:hover { background: var(--accent-dark); }
-    .secondary { padding: 10px 15px; color: var(--ink); border: 1px solid var(--line); background: var(--surface); }
+    .primary {
+      padding: 11px 16px;
+      color: white;
+      background: var(--gradient);
+      background-size: 160% auto;
+      transition: background-position 320ms ease, box-shadow 320ms ease, transform 180ms ease;
+    }
+    .primary:hover { background-position: 100% 0; box-shadow: var(--glow); transform: translateY(-1px); }
+    .secondary { padding: 10px 15px; color: var(--ink); border: 1px solid var(--line); background: var(--surface); transition: border-color 200ms ease, box-shadow 200ms ease; }
+    .secondary:hover { border-color: var(--accent); box-shadow: var(--glow); }
 
     .discovery-bar {
       display: grid;
@@ -328,8 +393,8 @@
     }
 
     .discovery-status { display: flex; align-items: center; gap: 11px; min-width: 0; }
-    .pulse-mark { position: relative; width: 11px; height: 11px; flex: 0 0 auto; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 5px color-mix(in srgb, var(--green) 16%, transparent); }
-    .pulse-mark::after { content: ""; position: absolute; inset: -5px; border: 1px solid var(--green); border-radius: 50%; animation: pulse-ring 2.2s ease-out infinite; }
+    .pulse-mark { position: relative; width: 11px; height: 11px; flex: 0 0 auto; border-radius: 50%; background: var(--gradient); box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 16%, transparent); }
+    .pulse-mark::after { content: ""; position: absolute; inset: -5px; border: 1px solid var(--accent); border-radius: 50%; animation: pulse-ring 2.2s ease-out infinite; }
     .discovery-status strong { display: block; font: 700 14px "Space Grotesk", sans-serif; }
     .discovery-status span:last-child { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }
     .quick-moods { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
@@ -345,7 +410,9 @@
       margin: 28px 0;
       padding: 16px;
       border: 1px solid var(--line);
+      border-radius: 10px;
       background: var(--panel);
+      backdrop-filter: blur(14px) saturate(1.3);
     }
 
     select { width: 100%; padding: 10px; color: var(--ink); border: 1px solid var(--line); border-radius: 5px; background: var(--surface); }
@@ -372,7 +439,7 @@
       border-top: 3px solid var(--card-accent);
     }
 
-    .movie-card:hover { transform: perspective(900px) translateY(-6px) rotateX(var(--card-rx)) rotateY(var(--card-ry)); border-color: var(--card-accent); box-shadow: var(--shadow); }
+    .movie-card:hover { transform: perspective(900px) translateY(-6px) rotateX(var(--card-rx)) rotateY(var(--card-ry)); border-color: var(--card-accent); box-shadow: var(--shadow), 0 0 26px color-mix(in srgb, var(--card-accent) 45%, transparent); }
     .poster-button { display: block; width: 100%; padding: 0; overflow: hidden; border: 0; background: #ddd; }
     .poster { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; transition: transform 420ms ease, filter 420ms ease; }
     .movie-card:hover .poster { transform: scale(1.035); filter: saturate(1.1); }
@@ -411,8 +478,8 @@
       font-weight: 700;
     }
 
-    .pagination button:hover:not(:disabled) { border-color: var(--accent); }
-    .pagination button.active { color: white; border-color: var(--accent); background: var(--accent); }
+    .pagination button:hover:not(:disabled) { border-color: var(--accent); box-shadow: var(--glow); }
+    .pagination button.active { color: white; border-color: transparent; background: var(--gradient); box-shadow: var(--glow); }
     .pagination button:disabled { cursor: wait; opacity: 0.55; }
     .page-loading { margin-left: 8px; color: var(--muted); font-size: 12px; }
 
@@ -443,10 +510,10 @@
       padding: 0;
       overflow: auto;
       color: var(--ink);
-      border: 0;
+      border: 1px solid var(--line);
       border-radius: 8px;
       background: var(--surface);
-      box-shadow: 0 30px 100px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 30px 100px rgba(0, 0, 0, 0.35), var(--glow);
     }
 
     dialog::backdrop { background: rgba(20, 20, 20, 0.7); backdrop-filter: blur(5px); }
@@ -475,7 +542,7 @@
     .auth-form { display: grid; gap: 13px; }
     .auth-field { display: grid; gap: 6px; color: var(--muted); font-size: 12px; font-weight: 700; }
     .auth-field input { width: 100%; padding: 11px 12px; color: var(--ink); border: 1px solid var(--line); border-radius: 5px; outline: none; background: var(--surface); }
-    .auth-field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(217, 73, 47, 0.12); }
+    .auth-field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent); }
     .auth-submit { width: 100%; margin-top: 3px; }
     .auth-submit:disabled { cursor: wait; opacity: 0.65; }
     .auth-error { min-height: 20px; margin: 0; color: var(--accent-dark); font-size: 13px; }
@@ -498,11 +565,14 @@
       color: white;
       border: 0;
       border-radius: 50%;
-      background: var(--accent);
-      box-shadow: var(--shadow);
+      background: var(--gradient);
+      background-size: 160% auto;
+      box-shadow: var(--shadow), var(--glow);
+      animation: launcher-pulse 3.2s ease-in-out infinite;
+      transition: background-position 320ms ease, transform 200ms ease;
     }
 
-    .chat-launcher:hover { background: var(--accent-dark); transform: translateY(-2px); }
+    .chat-launcher:hover { background-position: 100% 0; transform: translateY(-2px) scale(1.05); }
     .chat-launcher[aria-expanded="true"] { display: none; }
 
     .chat-launcher-icon {
@@ -558,9 +628,9 @@
       box-shadow: 0 24px 70px rgba(20, 20, 20, 0.28);
     }
 
-    .chat-header { display: flex; align-items: center; gap: 11px; padding: 14px 16px; color: white; background: var(--ink); }
-    :root[data-theme="dark"] .chat-header { color: white; background: #0d0f13; }
-    .chat-avatar { display: grid; width: 38px; height: 38px; flex: 0 0 auto; place-items: center; border-radius: 50%; color: white; background: var(--accent); font: 700 18px "Space Grotesk", sans-serif; }
+    .chat-header { display: flex; align-items: center; gap: 11px; padding: 14px 16px; color: white; background: var(--gradient); }
+    :root[data-theme="dark"] .chat-header { color: white; background: var(--gradient); }
+    .chat-avatar { display: grid; width: 38px; height: 38px; flex: 0 0 auto; place-items: center; border-radius: 50%; color: white; background: rgba(255, 255, 255, 0.22); backdrop-filter: blur(6px); font: 700 18px "Space Grotesk", sans-serif; }
     .chat-identity { min-width: 0; flex: 1; }
     .chat-heading { display: block; font: 700 16px "Space Grotesk", sans-serif; }
     .chat-status { display: flex; align-items: center; gap: 5px; margin-top: 2px; color: #c8ccd3; font-size: 11px; }
@@ -597,6 +667,9 @@
     .motion-section { opacity: 0; transform: translateY(34px); transition: opacity 700ms ease, transform 700ms cubic-bezier(.2,.8,.2,1); }
     .motion-section.in-view { opacity: 1; transform: none; }
     @keyframes reveal { from { opacity: 0; transform: perspective(900px) translateY(18px) scale(.97); } }
+    @keyframes aurora-float { from { transform: translate3d(-1.5%, -1%, 0) scale(1); } to { transform: translate3d(1.5%, 1.5%, 0) scale(1.06); } }
+    @keyframes gradient-drift { to { background-position: 200% 0; } }
+    @keyframes launcher-pulse { 0%, 100% { box-shadow: var(--shadow), 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); } 50% { box-shadow: var(--shadow), 0 0 0 12px color-mix(in srgb, var(--accent) 0%, transparent); } }
     @keyframes ambient-drift { from { transform: scale(1.08) translate3d(-1.5%, -1%, 0); } to { transform: scale(1.14) translate3d(1.5%, 1%, 0); } }
     @keyframes ambient-change { from { opacity: .25; transform: scale(1.18); } }
     @keyframes stage-forward { from { opacity: 0; translate: 13% 12px; scale: .94; } }
