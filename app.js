@@ -320,6 +320,7 @@ function movieCard(movie, index) {
   return `
     <article class="movie-card" style="--card-accent: ${genreColor(movie)}; animation-delay: ${Math.min(index * 45, 300)}ms">
       <button class="poster-button" data-details="${movie.id}" aria-label="View ${escapeHtml(movie.title)} details">
+        <span class="poster-tag">${escapeHtml(movie.type)}</span>
         <img class="poster" src="${escapeHtml(movie.poster)}" alt="${escapeHtml(movie.title)} poster">
       </button>
       <div class="card-body">
@@ -454,6 +455,10 @@ function showFeaturedMovie(index) {
   document.querySelector("#heroImage").alt = `${featured.title} backdrop`;
   document.querySelector("#heroTitle").textContent = featured.title;
   document.querySelector("#heroCardTitle").textContent = featured.title;
+  document.querySelector("#heroCardMeta").textContent = `\u2605 ${featured.rating.toFixed(1)} \u00b7 ${featured.year}`;
+  document.querySelector("#heroMetaGenre").textContent = featured.genres[0] || "\u2014";
+  document.querySelector("#heroMetaMood").textContent = featured.moods[0] || "\u2014";
+  document.querySelector("#heroMetaDirector").textContent = featured.director || "\u2014";
   document.querySelector("#heroOverview").textContent = featured.overview;
   document.querySelector("#heroPreviousImage").src = previous.backdrop;
   document.querySelector("#heroPreviousImage").alt = `${previous.title} backdrop`;
@@ -479,7 +484,7 @@ function renderMovieTicker() {
   const tickerMovies = featuredMovies().map((movie) => `
     <button class="ticker-movie" data-ticker-movie="${movie.id}" type="button">
       <img src="${escapeHtml(movie.backdrop)}" alt="">
-      <strong>${escapeHtml(movie.title)}</strong>
+      <strong><span class="ticker-dot" aria-hidden="true"></span>${escapeHtml(movie.title)}</strong>
       <span aria-hidden="true">›</span>
     </button>
   `).join("");

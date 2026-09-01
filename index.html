@@ -6,57 +6,51 @@
   <title>MRSmovies</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
   <style>
-    /* Theme tokens keep colors consistent across light and dark modes. AI Studio-inspired: */
-    /* deep space base with an electric violet -> cyan -> magenta gradient system. */
+    /* Theme tokens modeled on melius.com: flat signal-orange accent, near-black */
+    /* canvas, dotted grid texture, and a serif display face for headlines. */
     :root {
-      --ink: #14121f;
-      --muted: #64627a;
-      --paper: #f8f7fd;
+      --ink: #0e0e0e;
+      --muted: #6b6a67;
+      --paper: #fafaf9;
       --surface: #ffffff;
-      --line: #e5e2f5;
-      --accent: #6d5efc;
-      --accent-dark: #4f3fe0;
-      --accent-2: #00c2ff;
-      --accent-3: #ff5cc2;
-      --green: #0fae94;
-      --blue: #4c7dfc;
+      --line: #e6e4df;
+      --accent: #f04e23;
+      --accent-dark: #cf3c15;
+      --accent-ink: #100e0d;
+      --accent-2: #2f6bff;
+      --green: #0fae7b;
+      --blue: #2f6bff;
       --yellow: #f1a93f;
-      --gradient: linear-gradient(135deg, var(--accent-2), var(--accent) 52%, var(--accent-3));
-      --glow: 0 0 1px rgba(109, 94, 252, 0);
-      --shadow: 0 22px 60px rgba(20, 18, 31, 0.14);
-      --grid-line: rgba(20, 18, 31, 0.03);
-      --topbar: rgba(248, 247, 253, 0.86);
-      --panel: rgba(255, 255, 255, 0.78);
-      --aurora-1: rgba(109, 94, 252, 0.20);
-      --aurora-2: rgba(0, 194, 255, 0.16);
-      --aurora-3: rgba(255, 92, 194, 0.16);
+      --gradient: linear-gradient(90deg, var(--accent), var(--accent-2));
+      --dot: rgba(14, 14, 14, 0.16);
+      --shadow: 0 20px 50px rgba(14, 14, 14, 0.12);
+      --topbar: rgba(250, 250, 249, 0.88);
+      --panel: rgba(255, 255, 255, 0.8);
+      --canvas: #0e0e0e;
     }
 
     :root[data-theme="dark"] {
       color-scheme: dark;
-      --ink: #f4f3fb;
-      --muted: #9a97b8;
-      --paper: #07060f;
-      --surface: #131022;
-      --line: #262244;
-      --accent: #8b7dff;
-      --accent-dark: #6d5efc;
-      --accent-2: #22e1ff;
-      --accent-3: #ff6ec9;
-      --green: #3fd6b8;
-      --blue: #7ba2ff;
+      --ink: #fafafa;
+      --muted: #9a9994;
+      --paper: #0e0e0e;
+      --surface: #171717;
+      --line: #2b2b2b;
+      --accent: #f04e23;
+      --accent-dark: #ff6a44;
+      --accent-ink: #100e0d;
+      --accent-2: #4c86ff;
+      --green: #35d199;
+      --blue: #4c86ff;
       --yellow: #f3c969;
-      --gradient: linear-gradient(135deg, var(--accent-2), var(--accent) 52%, var(--accent-3));
-      --glow: 0 0 32px rgba(139, 125, 255, 0.35);
-      --shadow: 0 24px 70px rgba(0, 0, 0, 0.6);
-      --grid-line: rgba(139, 125, 255, 0.035);
-      --topbar: rgba(7, 6, 15, 0.82);
-      --panel: rgba(19, 16, 34, 0.72);
-      --aurora-1: rgba(139, 125, 255, 0.3);
-      --aurora-2: rgba(34, 225, 255, 0.22);
-      --aurora-3: rgba(255, 110, 201, 0.22);
+      --gradient: linear-gradient(90deg, var(--accent), var(--accent-2));
+      --dot: rgba(255, 255, 255, 0.1);
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+      --topbar: rgba(14, 14, 14, 0.86);
+      --panel: rgba(23, 23, 23, 0.78);
+      --canvas: #0e0e0e;
     }
 
     /* Global defaults make element sizing and typography predictable. */
@@ -68,31 +62,13 @@
       min-width: 0;
       overflow-x: hidden;
       color: var(--ink);
-      background:
-        linear-gradient(var(--grid-line) 1px, transparent 1px),
-        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
-        var(--paper);
-      background-size: 28px 28px;
+      background-image: radial-gradient(var(--dot) 1.4px, transparent 1.4px);
+      background-position: 0 0;
+      background-size: 24px 24px;
+      background-color: var(--paper);
       font-family: "DM Sans", sans-serif;
       transition: background 320ms ease, color 320ms ease;
     }
-
-    /* Floating aurora blobs create a soft, magical ambient glow behind the whole app. */
-    body::before {
-      content: "";
-      position: fixed;
-      z-index: 0;
-      inset: -10%;
-      pointer-events: none;
-      background:
-        radial-gradient(38vw 38vw at 10% 8%, var(--aurora-1), transparent 60%),
-        radial-gradient(34vw 34vw at 90% 18%, var(--aurora-2), transparent 60%),
-        radial-gradient(40vw 40vw at 50% 95%, var(--aurora-3), transparent 60%);
-      filter: blur(10px);
-      animation: aurora-float 22s ease-in-out infinite alternate;
-    }
-
-    header, main, .footer { position: relative; z-index: 1; }
 
     html { scroll-behavior: smooth; }
 
@@ -100,11 +76,28 @@
     button { cursor: pointer; }
     img { display: block; max-width: 100%; }
 
+    /* Sticky shell keeps the announcement strip and header pinned together. */
+    .site-header { position: sticky; top: 0; z-index: 20; }
+
+    .announcement {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 9px 16px;
+      background: #0e0e0e;
+      color: #fafafa;
+      font-size: 12.5px;
+      text-align: center;
+    }
+
+    .announcement-link { display: inline-flex; align-items: center; gap: 4px; color: var(--accent); font-weight: 700; text-decoration: none; }
+    .announcement-link:hover { color: var(--accent-dark); }
+
     /* Sticky application header: brand, search, navigation, and theme toggle. */
     .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 20;
+      position: relative;
       display: grid;
       grid-template-columns: auto minmax(220px, 520px) auto;
       align-items: center;
@@ -125,7 +118,7 @@
       bottom: -1px;
       left: 0;
       height: 2px;
-      background: linear-gradient(90deg, transparent, var(--accent-2), var(--accent), var(--accent-3), transparent);
+      background: linear-gradient(90deg, transparent, var(--accent), var(--accent-2), transparent);
       background-size: 200% 100%;
       animation: gradient-drift 8s linear infinite;
     }
@@ -138,23 +131,14 @@
       font: 700 20px "Space Grotesk", sans-serif;
     }
 
-    .brand span:last-child {
-      background: var(--gradient);
-      background-size: 200% auto;
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      animation: gradient-drift 6s linear infinite;
-    }
-
     .brand-mark {
       position: relative;
       display: block;
       width: 34px;
       height: 34px;
-      background: var(--gradient);
+      background: var(--accent);
       border-radius: 6px;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18), var(--glow);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
     }
 
     .brand-mark::before {
@@ -204,13 +188,12 @@
       color: white;
       border: 0;
       border-radius: 999px;
-      background: var(--gradient);
-      background-size: 160% auto;
+      background: var(--accent);
       font-weight: 700;
-      transition: background-position 320ms ease, box-shadow 320ms ease;
+      transition: background 200ms ease;
     }
 
-    .search-button:hover { background-position: 100% 0; box-shadow: var(--glow); }
+    .search-button:hover { background: var(--accent-dark); }
 
     .nav { display: flex; min-width: 0; gap: 3px; padding: 4px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); }
 
@@ -223,7 +206,7 @@
       font-weight: 700;
     }
 
-    .nav button.active { color: white; background: var(--gradient); box-shadow: var(--glow); }
+    .nav button.active { color: white; background: var(--accent); }
 
     .theme-toggle {
       width: 38px;
@@ -234,10 +217,10 @@
       border-radius: 50%;
       background: var(--surface);
       font-size: 17px;
-      transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+      transition: border-color 200ms ease, transform 200ms ease;
     }
 
-    .theme-toggle:hover { border-color: var(--accent); box-shadow: var(--glow); transform: rotate(18deg); }
+    .theme-toggle:hover { border-color: var(--accent); transform: rotate(18deg); }
 
     .account-button {
       max-width: 120px;
@@ -267,7 +250,7 @@
 
     .hero-ambient { position: absolute; inset: -9%; overflow: hidden; opacity: .2; pointer-events: none; mask-image: linear-gradient(to bottom, black, transparent 78%); }
     .hero-ambient img { width: 100%; height: 100%; object-fit: cover; filter: blur(28px) saturate(1.35); transform: scale(1.08); animation: ambient-drift 12s ease-in-out infinite alternate; }
-    .hero::before { content: ""; position: absolute; z-index: 1; inset: 0; opacity: 0.35; background: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px); background-size: 34px 34px; mask-image: linear-gradient(to bottom, black, transparent 70%); }
+    .hero::before { content: ""; position: absolute; z-index: 1; inset: 0; opacity: .6; background-image: radial-gradient(rgba(255, 255, 255, .14) 1.4px, transparent 1.4px); background-size: 26px 26px; mask-image: linear-gradient(to bottom, black, transparent 70%); }
     .hero::after { display: none; }
     .hero-changing .hero-ambient img { animation: ambient-change 900ms both, ambient-drift 12s 900ms ease-in-out infinite alternate; }
     .hero-changing[data-direction="forward"] .hero-preview { animation: stage-forward 680ms cubic-bezier(.2,.8,.2,1) both; }
@@ -289,23 +272,55 @@
     .hero .secondary { color: white; border-color: rgba(255, 255, 255, 0.45); background: rgba(12, 15, 20, 0.5); backdrop-filter: blur(10px); }
     .hero .secondary:hover { border-color: white; background: rgba(12, 15, 20, 0.78); }
 
-    .eyebrow { color: var(--yellow); font-size: 12px; font-weight: 700; text-transform: uppercase; }
+    /* Small tag pills mirror the node labels used across the melius.com canvas. */
+    .eyebrow {
+      display: inline-block;
+      padding: 3px 10px;
+      color: var(--accent-ink);
+      background: var(--accent);
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
     h1, h2, h3 { margin: 0; font-family: "Space Grotesk", sans-serif; letter-spacing: 0; }
-    h1 { margin-top: 8px; font-size: clamp(42px, 6vw, 74px); line-height: 0.98; }
+    h1 { margin-top: 10px; font-family: "Fraunces", "Space Grotesk", serif; font-weight: 600; font-size: clamp(42px, 6vw, 74px); line-height: 0.98; }
     #heroTitle {
       display: block;
       overflow: hidden;
-      background: linear-gradient(135deg, var(--accent-2), var(--accent) 45%, var(--accent-3));
-      background-size: 200% auto;
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+      color: var(--accent);
       font-size: 0.72em;
       text-overflow: ellipsis;
       white-space: nowrap;
-      animation: gradient-drift 6s linear infinite;
     }
     .hero p { max-width: 590px; margin: 14px auto 22px; color: #b8bac0; line-height: 1.6; }
+
+    /* Data-driven meta nodes echo melius.com's tagged, connected workflow cards. */
+    .hero-meta-row { position: relative; z-index: 3; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 4px; }
+    .hero-node {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 12px 7px 10px;
+      border: 1px solid rgba(255, 255, 255, .14);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .045);
+      backdrop-filter: blur(6px);
+    }
+    .hero-node-dot { width: 6px; height: 6px; flex: 0 0 auto; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+    .hero-node-tag {
+      padding: 2px 7px;
+      color: var(--accent-ink);
+      background: var(--accent);
+      border-radius: 3px;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .hero-node strong { overflow: hidden; max-width: 160px; color: #fff; font: 700 12.5px "Space Grotesk", sans-serif; text-overflow: ellipsis; white-space: nowrap; }
 
     .hero-stage { --stage-x: 0deg; --stage-y: 0deg; position: absolute; right: 0; bottom: 62px; left: 0; height: 300px; perspective: 1100px; translate: 0 var(--hero-stage-shift, 0); touch-action: pan-y; }
     .hero-preview { position: absolute; top: 28px; height: 230px; overflow: hidden; padding: 0; color: white; text-align: left; border: 1px solid #2c2e31; border-radius: 8px; background: #111316; box-shadow: 0 20px 60px rgba(0,0,0,.5); transition: opacity 320ms ease, transform 320ms ease, filter 320ms ease; }
@@ -319,8 +334,20 @@
     .hero-preview-current { z-index: 2; top: 0; left: 50%; width: 54%; height: 280px; transform: translateX(-50%) rotateX(var(--stage-y)) rotateY(var(--stage-x)); }
     .hero-preview-current:hover { transform: translateX(-50%) rotateX(var(--stage-y)) rotateY(var(--stage-x)) translateY(-5px); }
     .hero-card-copy { position: absolute; z-index: 2; right: 22px; bottom: 19px; left: 22px; }
-    .hero-card-copy small { display: block; margin-bottom: 4px; color: var(--accent); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+    .hero-card-copy small {
+      display: inline-block;
+      margin-bottom: 6px;
+      padding: 2px 8px;
+      color: var(--accent-ink);
+      background: var(--accent);
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
     .hero-card-copy strong { display: block; overflow: hidden; font: 700 clamp(18px, 2.5vw, 30px) "Space Grotesk", sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+    .hero-node-header-meta { position: absolute; z-index: 2; top: 10px; right: 14px; color: rgba(255, 255, 255, .78); font-size: 11px; font-weight: 700; letter-spacing: .02em; }
 
     .hero-navigation {
       position: absolute;
@@ -349,8 +376,11 @@
     .hero-dot { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.45); }
     .hero-dot.active { width: 22px; border-radius: 5px; background: var(--accent); }
     .hero-progress { position: absolute; z-index: 2; left: 0; bottom: 0; width: 100%; height: 3px; overflow: hidden; background: rgba(255, 255, 255, 0.15); }
-    .hero-progress::after { content: ""; display: block; width: 100%; height: 100%; background: var(--accent); transform-origin: left; }
+    .hero-progress::after { content: ""; display: block; width: 100%; height: 100%; background: var(--gradient); transform-origin: left; }
     .hero-changing .hero-progress::after { animation: hero-progress 4s linear both; }
+
+    /* Thin gradient bar echoes the orange-to-blue divider used between melius.com sections. */
+    .section-divider { height: 4px; margin: 18px 0 0; border-radius: 999px; background: var(--gradient); opacity: .85; }
 
     .movie-ticker { position: relative; width: 100%; margin: 20px 0 0; overflow: hidden; border-block: 1px solid var(--line); background: var(--surface); }
     .movie-ticker::before, .movie-ticker::after { content: ""; position: absolute; z-index: 2; top: 0; bottom: 0; width: min(10vw, 120px); pointer-events: none; }
@@ -364,6 +394,7 @@
     .ticker-movie img { width: 54px; height: 38px; border-radius: 4px; object-fit: cover; }
     .ticker-movie strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: "Space Grotesk", sans-serif; }
     .ticker-movie span { color: var(--accent); font-size: 18px; }
+    .ticker-dot { display: inline-block; width: 6px; height: 6px; margin-right: 6px; vertical-align: middle; border-radius: 50%; background: var(--accent); }
 
     .primary, .secondary, .icon-button {
       border: 0;
@@ -374,13 +405,12 @@
     .primary {
       padding: 11px 16px;
       color: white;
-      background: var(--gradient);
-      background-size: 160% auto;
-      transition: background-position 320ms ease, box-shadow 320ms ease, transform 180ms ease;
+      background: var(--accent);
+      transition: background 200ms ease, transform 180ms ease;
     }
-    .primary:hover { background-position: 100% 0; box-shadow: var(--glow); transform: translateY(-1px); }
-    .secondary { padding: 10px 15px; color: var(--ink); border: 1px solid var(--line); background: var(--surface); transition: border-color 200ms ease, box-shadow 200ms ease; }
-    .secondary:hover { border-color: var(--accent); box-shadow: var(--glow); }
+    .primary:hover { background: var(--accent-dark); transform: translateY(-1px); }
+    .secondary { padding: 10px 15px; color: var(--ink); border: 1px solid var(--line); background: var(--surface); transition: border-color 200ms ease; }
+    .secondary:hover { border-color: var(--accent); }
 
     .discovery-bar {
       display: grid;
@@ -393,14 +423,14 @@
     }
 
     .discovery-status { display: flex; align-items: center; gap: 11px; min-width: 0; }
-    .pulse-mark { position: relative; width: 11px; height: 11px; flex: 0 0 auto; border-radius: 50%; background: var(--gradient); box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 16%, transparent); }
-    .pulse-mark::after { content: ""; position: absolute; inset: -5px; border: 1px solid var(--accent); border-radius: 50%; animation: pulse-ring 2.2s ease-out infinite; }
+    .pulse-mark { position: relative; width: 11px; height: 11px; flex: 0 0 auto; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 5px color-mix(in srgb, var(--green) 16%, transparent); }
+    .pulse-mark::after { content: ""; position: absolute; inset: -5px; border: 1px solid var(--green); border-radius: 50%; animation: pulse-ring 2.2s ease-out infinite; }
     .discovery-status strong { display: block; font: 700 14px "Space Grotesk", sans-serif; }
     .discovery-status span:last-child { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }
     .quick-moods { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
     .quick-moods button { padding: 7px 10px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 12px; font-weight: 700; }
-    .quick-moods button:hover { color: var(--ink); border-color: var(--green); transform: translateY(-1px); }
-    .quick-moods button.active { color: white; border-color: var(--green); background: var(--green); }
+    .quick-moods button:hover { color: var(--ink); border-color: var(--accent); transform: translateY(-1px); }
+    .quick-moods button.active { color: white; border-color: var(--accent); background: var(--accent); }
 
     /* Discovery filters collapse from five columns on smaller screens. */
     .filters {
@@ -439,8 +469,22 @@
       border-top: 3px solid var(--card-accent);
     }
 
-    .movie-card:hover { transform: perspective(900px) translateY(-6px) rotateX(var(--card-rx)) rotateY(var(--card-ry)); border-color: var(--card-accent); box-shadow: var(--shadow), 0 0 26px color-mix(in srgb, var(--card-accent) 45%, transparent); }
-    .poster-button { display: block; width: 100%; padding: 0; overflow: hidden; border: 0; background: #ddd; }
+    .movie-card:hover { transform: perspective(900px) translateY(-6px) rotateX(var(--card-rx)) rotateY(var(--card-ry)); border-color: var(--card-accent); box-shadow: var(--shadow); }
+    .poster-button { position: relative; display: block; width: 100%; padding: 0; overflow: hidden; border: 0; background: #ddd; }
+    .poster-tag {
+      position: absolute;
+      z-index: 2;
+      top: 8px;
+      left: 8px;
+      padding: 2px 7px;
+      color: var(--accent-ink);
+      background: var(--accent);
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+    }
     .poster { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; transition: transform 420ms ease, filter 420ms ease; }
     .movie-card:hover .poster { transform: scale(1.035); filter: saturate(1.1); }
     .card-body { padding: 14px; }
@@ -478,8 +522,8 @@
       font-weight: 700;
     }
 
-    .pagination button:hover:not(:disabled) { border-color: var(--accent); box-shadow: var(--glow); }
-    .pagination button.active { color: white; border-color: transparent; background: var(--gradient); box-shadow: var(--glow); }
+    .pagination button:hover:not(:disabled) { border-color: var(--accent); }
+    .pagination button.active { color: white; border-color: var(--accent); background: var(--accent); }
     .pagination button:disabled { cursor: wait; opacity: 0.55; }
     .page-loading { margin-left: 8px; color: var(--muted); font-size: 12px; }
 
@@ -513,7 +557,7 @@
       border: 1px solid var(--line);
       border-radius: 8px;
       background: var(--surface);
-      box-shadow: 0 30px 100px rgba(0, 0, 0, 0.35), var(--glow);
+      box-shadow: 0 30px 100px rgba(0, 0, 0, 0.35);
     }
 
     dialog::backdrop { background: rgba(20, 20, 20, 0.7); backdrop-filter: blur(5px); }
@@ -565,14 +609,13 @@
       color: white;
       border: 0;
       border-radius: 50%;
-      background: var(--gradient);
-      background-size: 160% auto;
-      box-shadow: var(--shadow), var(--glow);
+      background: var(--accent);
+      box-shadow: var(--shadow);
       animation: launcher-pulse 3.2s ease-in-out infinite;
-      transition: background-position 320ms ease, transform 200ms ease;
+      transition: background 200ms ease, transform 200ms ease;
     }
 
-    .chat-launcher:hover { background-position: 100% 0; transform: translateY(-2px) scale(1.05); }
+    .chat-launcher:hover { background: var(--accent-dark); transform: translateY(-2px) scale(1.05); }
     .chat-launcher[aria-expanded="true"] { display: none; }
 
     .chat-launcher-icon {
@@ -628,8 +671,8 @@
       box-shadow: 0 24px 70px rgba(20, 20, 20, 0.28);
     }
 
-    .chat-header { display: flex; align-items: center; gap: 11px; padding: 14px 16px; color: white; background: var(--gradient); }
-    :root[data-theme="dark"] .chat-header { color: white; background: var(--gradient); }
+    .chat-header { display: flex; align-items: center; gap: 11px; padding: 14px 16px; color: white; background: var(--accent); }
+    :root[data-theme="dark"] .chat-header { color: white; background: var(--accent); }
     .chat-avatar { display: grid; width: 38px; height: 38px; flex: 0 0 auto; place-items: center; border-radius: 50%; color: white; background: rgba(255, 255, 255, 0.22); backdrop-filter: blur(6px); font: 700 18px "Space Grotesk", sans-serif; }
     .chat-identity { min-width: 0; flex: 1; }
     .chat-heading { display: block; font: 700 16px "Space Grotesk", sans-serif; }
@@ -667,7 +710,6 @@
     .motion-section { opacity: 0; transform: translateY(34px); transition: opacity 700ms ease, transform 700ms cubic-bezier(.2,.8,.2,1); }
     .motion-section.in-view { opacity: 1; transform: none; }
     @keyframes reveal { from { opacity: 0; transform: perspective(900px) translateY(18px) scale(.97); } }
-    @keyframes aurora-float { from { transform: translate3d(-1.5%, -1%, 0) scale(1); } to { transform: translate3d(1.5%, 1.5%, 0) scale(1.06); } }
     @keyframes gradient-drift { to { background-position: 200% 0; } }
     @keyframes launcher-pulse { 0%, 100% { box-shadow: var(--shadow), 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); } 50% { box-shadow: var(--shadow), 0 0 0 12px color-mix(in srgb, var(--accent) 0%, transparent); } }
     @keyframes ambient-drift { from { transform: scale(1.08) translate3d(-1.5%, -1%, 0); } to { transform: scale(1.14) translate3d(1.5%, 1%, 0); } }
@@ -766,21 +808,27 @@
   </style>
 </head>
 <body>
-  <!-- Sticky header with global search and the three main application views. -->
-  <header class="topbar">
-    <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span>MRSmovies</span></div>
-    <form id="searchForm" class="search-form" role="search">
-      <input id="searchInput" class="search" type="search" placeholder="Type a movie title, director, genre, or mood" aria-label="Search movies">
-      <button class="search-button" type="submit">Search</button>
-    </form>
-    <nav class="nav" aria-label="Main navigation">
-      <button class="active" data-view="discover">Discover</button>
-      <button data-view="recommended">For You</button>
-      <button data-view="watchlist">Watchlist <span id="watchlistCount">0</span></button>
-      <button id="authButton" class="account-button hidden">Sign in</button>
-      <button id="themeToggle" class="theme-toggle" aria-label="Enable dark mode" title="Enable dark mode">☾</button>
-    </nav>
-  </header>
+  <!-- Sticky strip + header: announcement, global search, and the main application views. -->
+  <div class="site-header">
+    <div class="announcement">
+      <span>New titles land on MRSmovies every week</span>
+      <a class="announcement-link" href="#movieGrid">Explore now <span aria-hidden="true">&rarr;</span></a>
+    </div>
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span>MRSmovies</span></div>
+      <form id="searchForm" class="search-form" role="search">
+        <input id="searchInput" class="search" type="search" placeholder="Type a movie title, director, genre, or mood" aria-label="Search movies">
+        <button class="search-button" type="submit">Search</button>
+      </form>
+      <nav class="nav" aria-label="Main navigation">
+        <button class="active" data-view="discover">Discover</button>
+        <button data-view="recommended">For You</button>
+        <button data-view="watchlist">Watchlist <span id="watchlistCount">0</span></button>
+        <button id="authButton" class="account-button hidden">Sign in</button>
+        <button id="themeToggle" class="theme-toggle" aria-label="Enable dark mode" title="Enable dark mode">☾</button>
+      </nav>
+    </header>
+  </div>
 
   <main>
     <!-- Rotating featured area; JavaScript supplies movie content and indicators. -->
@@ -794,6 +842,11 @@
           <button id="heroDetails" class="primary">View details</button>
           <button id="surpriseButton" class="secondary">Surprise me</button>
         </div>
+        <div class="hero-meta-row">
+          <div class="hero-node"><span class="hero-node-dot" aria-hidden="true"></span><span class="hero-node-tag">Genre</span><strong id="heroMetaGenre">—</strong></div>
+          <div class="hero-node"><span class="hero-node-dot" aria-hidden="true"></span><span class="hero-node-tag">Mood</span><strong id="heroMetaMood">—</strong></div>
+          <div class="hero-node"><span class="hero-node-dot" aria-hidden="true"></span><span class="hero-node-tag">Director</span><strong id="heroMetaDirector">—</strong></div>
+        </div>
       </div>
       <div id="heroStage" class="hero-stage">
         <button id="heroPreviousPreview" class="hero-preview hero-preview-side hero-preview-previous" aria-label="Show previous featured movie">
@@ -802,6 +855,7 @@
         </button>
         <button id="heroCurrentPreview" class="hero-preview hero-preview-current" aria-label="View featured movie details">
           <img id="heroImage" alt="Featured movie backdrop">
+          <span class="hero-node-header-meta" id="heroCardMeta"></span>
           <span class="hero-card-copy"><small>Now featured</small><strong id="heroCardTitle"></strong></span>
         </button>
         <button id="heroNextPreview" class="hero-preview hero-preview-side hero-preview-next" aria-label="Show next featured movie">
@@ -816,6 +870,8 @@
       </div>
       <div class="hero-progress" aria-hidden="true"></div>
     </section>
+
+    <div class="section-divider" aria-hidden="true"></div>
 
     <section class="movie-ticker" aria-label="Featured movie lineup">
       <div id="movieTicker" class="movie-ticker-track"></div>
