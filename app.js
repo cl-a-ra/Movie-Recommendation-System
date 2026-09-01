@@ -450,6 +450,7 @@ const marquee = {
   offset: 0,
   speed: 86,
   itemWidth: 0,
+  cycleLength: 0,
   paused: false,
   lastTimestamp: null,
   rafId: null,
@@ -461,20 +462,30 @@ function featuredMovies() {
   return state.movies.slice(0, 8);
 }
 
+function latestMarqueeMovies() {
+  return allKnownMovies()
+    .sort((first, second) => Number(second.year) - Number(first.year) || Number(second.rating || 0) - Number(first.rating || 0))
+    .slice(0, 16);
+}
+
 function buildFeaturedMarquee() {
-  const movies = featuredMovies();
+  const movies = latestMarqueeMovies();
   const leftTrack = document.querySelector("#heroMarqueeLeft");
   const rightTrack = document.querySelector("#heroMarqueeRight");
   if (!movies.length || !leftTrack || !rightTrack) return;
-  const shuffledMovies = [...movies];
-  for (let movieIndex = shuffledMovies.length - 1; movieIndex > 0; movieIndex -= 1) {
-    const randomIndex = Math.floor(Math.random() * (movieIndex + 1));
-    [shuffledMovies[movieIndex], shuffledMovies[randomIndex]] = [shuffledMovies[randomIndex], shuffledMovies[movieIndex]];
-  }
-  const loops = Math.max(4, Math.ceil(window.innerWidth / (movies.length * 170)) + 2);
-  const items = [];
-  for (let loop = 0; loop < loops; loop += 1) shuffledMovies.forEach((movie) => items.push(movie));
-  const markup = items.map((movie) => `
+  const shuffle = (movieList) => {
+    const shuffledMovies = [...movieList];
+    for (let movieIndex = shuffledMovies.length - 1; movieIndex > 0; movieIndex -= 1) {
+      const randomIndex = Math.floor(Math.random() * (movieIndex + 1));
+      [shuffledMovies[movieIndex], shuffledMovies[randomIndex]] = [shuffledMovies[randomIndex], shuffledMovies[movieIndex]];
+    }
+    return shuffledMovies;
+  };
+  const leftMovies = shuffle(movies.filter((movie, movieIndex) => movieIndex % 2 === 0));
+  const rightMovies = shuffle(movies.filter((movie, movieIndex) => movieIndex % 2 === 1));
+  marquee.cycleLength = Math.min(leftMovies.length, rightMovies.length);
+  const loops = Math.max(4, Math.ceil(window.innerWidth / (marquee.cycleLength * 170)) + 2);
+  const trackMarkup = (trackMovies) => Array.from({ length: loops }, () => trackMovies).flat().map((movie) => `
     <button class="hero-marquee-item" data-movie-id="${movie.id}" type="button" aria-label="View ${escapeHtml(movie.title)} details">
       <span class="poster-tag">${escapeHtml(movie.type)}</span>
       <img src="${escapeHtml(movie.poster)}" alt="">
@@ -484,10 +495,10 @@ function buildFeaturedMarquee() {
       </span>
     </button>
   `).join("");
-  // Identical content + shared offset keeps the two streams perfectly mirrored.
-  rightTrack.innerHTML = markup;
-  leftTrack.innerHTML = markup;
-  document.querySelector("#heroDots").innerHTML = movies.map((movie, movieIndex) => `
+  rightTrack.innerHTML = trackMarkup(rightMovies);
+  leftTrack.innerHTML = trackMarkup(leftMovies);
+  const heroMovies = featuredMovies();
+  document.querySelector("#heroDots").innerHTML = heroMovies.map((movie, movieIndex) => `
     <button class="hero-dot ${movieIndex === state.featuredIndex ? "active" : ""}" data-featured="${movieIndex}" aria-label="Show ${escapeHtml(movie.title)}"></button>
   `).join("");
 }
@@ -543,7 +554,7 @@ function stepMarquee(timestamp) {
     }
     marquee.offset = 0;
   }
-  const loopWidth = marquee.itemWidth * featuredMovies().length;
+  const loopWidth = marquee.itemWidth * marquee.cycleLength;
 
   if (!marquee.paused && marquee.itemWidth) {
     marquee.offset += marquee.speed * delta;
@@ -935,6 +946,8 @@ async function startApp() {
   setupPageMotion();
   render();
   await loadMoreDiscover();
+  marquee.itemWidth = 0;
+  buildFeaturedMarquee();
 }
 
 // Desktop waits for Python; hosted pages can start when the DOM is ready.
