@@ -239,12 +239,12 @@
     /* Featured movie carousel with automatic progress and manual controls. */
     .hero {
       position: relative;
-      min-height: 700px;
+      min-height: 780px;
       overflow: hidden;
       color: #ffffff;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: #08090b;
+      background: var(--canvas);
       box-shadow: var(--shadow);
     }
 
@@ -298,14 +298,14 @@
     .hero p { max-width: 590px; margin: 14px auto 22px; color: #b8bac0; line-height: 1.6; }
 
     /* Data-driven meta nodes echo melius.com's tagged, connected workflow cards. */
-    .hero-meta-row { position: relative; z-index: 3; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 4px; }
+    .hero-meta-row { position: relative; z-index: 3; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 4px; }
     .hero-node {
       display: flex;
       align-items: center;
-      gap: 7px;
-      padding: 7px 12px 7px 10px;
+      gap: 6px;
+      padding: 5px 10px 5px 8px;
       border: 1px solid rgba(255, 255, 255, .14);
-      border-radius: 8px;
+      border-radius: 7px;
       background: rgba(255, 255, 255, .045);
       backdrop-filter: blur(6px);
     }
@@ -498,7 +498,7 @@
     .card-actions button { flex: 1; padding: 8px; }
     .saved { color: white; background: var(--green); border-color: var(--green); }
 
-    .empty { padding: 70px 20px; text-align: center; border: 1px dashed #aaa69c; color: var(--muted); background: rgba(255, 255, 255, 0.5); }
+    .empty { padding: 70px 20px; text-align: center; border: 1px dashed var(--line); border-radius: 8px; color: var(--muted); background: var(--surface); }
     .hidden { display: none !important; }
 
     /* Page controls request additional catalog movies only when needed. */
@@ -730,7 +730,7 @@
       .filters { grid-template-columns: repeat(2, 1fr); }
       .discovery-bar { grid-template-columns: 1fr; }
       .quick-moods { justify-content: flex-start; }
-      .hero { min-height: 670px; }
+      .hero { min-height: 750px; }
       .hero-stage { height: 270px; }
       .hero-preview-current { width: 62%; height: 250px; }
       .hero-preview-side { width: 30%; height: 205px; }
@@ -757,6 +757,7 @@
       .hero { min-height: 640px; }
       .hero-content { width: 100%; padding: 34px 18px 0; }
       .hero-content h1 { font-size: clamp(38px, 11vw, 52px); }
+      .hero-meta-row { display: none; }
       #heroTitle { display: -webkit-box; font-size: 0.55em; white-space: normal; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
       .hero-content p { display: -webkit-box; overflow: hidden; font-size: 14px; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
       .hero-stage { bottom: 56px; height: 235px; }
