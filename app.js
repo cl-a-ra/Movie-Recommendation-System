@@ -466,9 +466,14 @@ function buildFeaturedMarquee() {
   const leftTrack = document.querySelector("#heroMarqueeLeft");
   const rightTrack = document.querySelector("#heroMarqueeRight");
   if (!movies.length || !leftTrack || !rightTrack) return;
-  const loops = 3;
+  const shuffledMovies = [...movies];
+  for (let movieIndex = shuffledMovies.length - 1; movieIndex > 0; movieIndex -= 1) {
+    const randomIndex = Math.floor(Math.random() * (movieIndex + 1));
+    [shuffledMovies[movieIndex], shuffledMovies[randomIndex]] = [shuffledMovies[randomIndex], shuffledMovies[movieIndex]];
+  }
+  const loops = Math.max(4, Math.ceil(window.innerWidth / (movies.length * 170)) + 2);
   const items = [];
-  for (let loop = 0; loop < loops; loop += 1) movies.forEach((movie) => items.push(movie));
+  for (let loop = 0; loop < loops; loop += 1) shuffledMovies.forEach((movie) => items.push(movie));
   const markup = items.map((movie) => `
     <button class="hero-marquee-item" data-movie-id="${movie.id}" type="button" aria-label="View ${escapeHtml(movie.title)} details">
       <span class="poster-tag">${escapeHtml(movie.type)}</span>
@@ -528,8 +533,14 @@ function stepMarquee(timestamp) {
   if (!marquee.itemWidth) {
     const firstItem = rightTrack.querySelector(".hero-marquee-item");
     const trackStyle = firstItem && getComputedStyle(rightTrack);
+    const itemStyle = firstItem && getComputedStyle(firstItem);
     // offsetWidth ignores the per-frame rotate/scale transforms, unlike getBoundingClientRect.
-    if (firstItem) marquee.itemWidth = firstItem.offsetWidth + parseFloat(trackStyle.columnGap || "0");
+    if (firstItem) {
+      marquee.itemWidth = firstItem.offsetWidth
+        + parseFloat(itemStyle.marginLeft || "0")
+        + parseFloat(itemStyle.marginRight || "0")
+        + parseFloat(trackStyle.columnGap || "0");
+    }
     marquee.offset = 0;
   }
   const loopWidth = marquee.itemWidth * featuredMovies().length;
@@ -547,8 +558,6 @@ function stepMarquee(timestamp) {
 
   const stageRect = stage.getBoundingClientRect();
   const centerX = stageRect.left + stageRect.width / 2;
-  let closestItem = null;
-  let closestDistance = Infinity;
   stage.querySelectorAll(".hero-marquee-item").forEach((item) => {
     const rect = item.getBoundingClientRect();
     const itemCenter = rect.left + rect.width / 2;
@@ -557,17 +566,7 @@ function stepMarquee(timestamp) {
     // Cards are born tiny at the center split and grow/tilt as they travel outward.
     item.style.transform = `rotateY(${Math.sign(signed) * grow * 30}deg) scale(${0.35 + grow * 0.65})`;
     item.style.zIndex = String(Math.round(grow * 100));
-    const distance = Math.abs(itemCenter - centerX);
-    if (distance < closestDistance) {
-      closestDistance = distance;
-      closestItem = item;
-    }
   });
-
-  if (closestItem) {
-    const movie = featuredMovies().find((item) => item.id === closestItem.dataset.movieId);
-    if (movie) updateFeaturedInfo(movie);
-  }
 
   marquee.rafId = requestAnimationFrame(stepMarquee);
 }

@@ -301,7 +301,7 @@
     .hero-marquee-half { position: absolute; top: 0; bottom: 0; width: 50%; overflow: hidden; display: flex; align-items: center; transform-style: preserve-3d; }
     .hero-marquee-half-left { left: 0; justify-content: flex-end; }
     .hero-marquee-half-right { right: 0; justify-content: flex-start; }
-    .hero-marquee-track { display: flex; align-items: center; flex: 0 0 auto; height: 330px; gap: 8px; transform-style: preserve-3d; will-change: transform; }
+    .hero-marquee-track { display: flex; align-items: center; flex: 0 0 auto; height: 330px; gap: 0; transform-style: preserve-3d; will-change: transform; }
     .hero-marquee-item {
       position: relative;
       display: flex;
@@ -309,6 +309,7 @@
       flex: 0 0 auto;
       width: 200px;
       height: 100%;
+      margin-inline: -14px;
       overflow: hidden;
       padding: 0;
       text-align: left;
