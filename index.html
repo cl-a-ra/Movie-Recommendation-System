@@ -240,7 +240,7 @@
     /* Featured movie carousel with automatic progress and manual controls. */
     .hero {
       position: relative;
-      min-height: 820px;
+      min-height: 850px;
       overflow: hidden;
       color: #ffffff;
       border: 1px solid var(--line);
@@ -294,14 +294,14 @@
     .hero p { max-width: 590px; margin: 14px auto 22px; color: #b8bac0; line-height: 1.6; }
 
     /* Continuously scrolling, mirrored-fan marquee (matches melius.com's hero motion). */
-    .hero-stage { position: absolute; right: 0; bottom: 62px; left: 0; height: 370px; overflow: hidden; perspective: 1100px; translate: 0 var(--hero-stage-shift, 0); }
-    .hero-marquee-track { position: absolute; top: 10px; left: 0; display: flex; align-items: center; height: 350px; gap: 18px; transform-style: preserve-3d; will-change: transform; }
+    .hero-stage { position: absolute; right: 0; bottom: 62px; left: 0; height: 410px; overflow: hidden; perspective: 1100px; translate: 0 var(--hero-stage-shift, 0); }
+    .hero-marquee-track { position: absolute; top: 4px; left: 0; display: flex; align-items: center; height: 330px; gap: 18px; transform-style: preserve-3d; will-change: transform; }
     .hero-marquee-item {
       position: relative;
       display: flex;
       flex-direction: column;
       flex: 0 0 auto;
-      width: 190px;
+      width: 185px;
       height: 100%;
       overflow: hidden;
       padding: 0;
@@ -312,6 +312,8 @@
       box-shadow: 0 20px 60px rgba(0,0,0,.5);
       cursor: pointer;
       transform-style: preserve-3d;
+      /* Faded floor reflection below each card, like an awwwards-style mirror. */
+      -webkit-box-reflect: below 10px linear-gradient(transparent 62%, rgba(0, 0, 0, 0.3));
     }
     .hero-marquee-item .poster-tag { top: 6px; left: 6px; }
     .hero-marquee-item:hover { border-color: var(--accent); }
@@ -693,10 +695,10 @@
       .filters { grid-template-columns: repeat(2, 1fr); }
       .discovery-bar { grid-template-columns: 1fr; }
       .quick-moods { justify-content: flex-start; }
-      .hero { min-height: 790px; }
-      .hero-stage { height: 320px; }
-      .hero-marquee-track { height: 300px; }
-      .hero-marquee-item { width: 165px; }
+      .hero { min-height: 820px; }
+      .hero-stage { height: 360px; }
+      .hero-marquee-track { height: 285px; }
+      .hero-marquee-item { width: 160px; }
       .ticker-heading { margin-top: 18px; }
       .ticker-movie { min-width: 220px; }
     }
@@ -718,14 +720,14 @@
       .search { min-width: 0; padding: 10px 12px; }
       .search-button { padding: 0 13px; }
       main { width: min(100% - 24px, 1240px); margin-top: 14px; }
-      .hero { min-height: 680px; }
+      .hero { min-height: 720px; }
       .hero-content { width: 100%; padding: 34px 18px 0; }
       .hero-content h1 { font-size: clamp(38px, 11vw, 52px); }
       #heroTitle { display: -webkit-box; font-size: 0.55em; white-space: normal; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
       .hero-content p { display: -webkit-box; overflow: hidden; font-size: 14px; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
-      .hero-stage { bottom: 56px; height: 260px; }
-      .hero-marquee-track { height: 240px; }
-      .hero-marquee-item { width: 130px; }
+      .hero-stage { bottom: 56px; height: 290px; }
+      .hero-marquee-track { height: 225px; }
+      .hero-marquee-item { width: 125px; }
       .discovery-bar { margin-top: 18px; }
       .quick-moods { flex-wrap: nowrap; margin-right: -12px; padding: 2px 12px 4px 0; overflow-x: auto; scrollbar-width: none; }
       .quick-moods::-webkit-scrollbar { display: none; }
@@ -758,7 +760,7 @@
       .brand { padding-right: 48px; }
       .filters { grid-template-columns: 1fr; }
       .filters .secondary { grid-column: auto; }
-      .hero { min-height: 680px; }
+      .hero { min-height: 720px; }
       .hero p { font-size: 14px; }
       .card-actions button { padding: 7px 4px; font-size: 12px; }
     }
