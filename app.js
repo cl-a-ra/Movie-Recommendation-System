@@ -421,6 +421,7 @@ async function toggleWatchlist(movieId) {
   state.watchlist = await backendApi().toggle_watchlist(movieId);
   updateDialogButton();
   render();
+  renderMovieTicker();
   showToast(state.watchlist.includes(movieId) ? "Added to your watchlist" : "Removed from your watchlist");
 }
 
@@ -567,14 +568,7 @@ function renderMovieTicker() {
   const trendingMovies = state.movies
     .filter((movie) => !featuredIds.has(movie.id))
     .sort((first, second) => second.rating - first.rating);
-  const tickerMovies = trendingMovies.map((movie) => `
-    <button class="ticker-movie" data-ticker-movie="${movie.id}" type="button">
-      <img src="${escapeHtml(movie.backdrop)}" alt="">
-      <strong><span class="ticker-dot" aria-hidden="true"></span>${escapeHtml(movie.title)}</strong>
-      <span aria-hidden="true">›</span>
-    </button>
-  `).join("");
-  document.querySelector("#movieTicker").innerHTML = tickerMovies;
+  document.querySelector("#movieTicker").innerHTML = trendingMovies.slice(0, 4).map(movieCard).join("");
 }
 
 function setupPageMotion() {
@@ -809,8 +803,12 @@ function attachEvents() {
     if (pageButton) goToPage(Number(pageButton.dataset.page));
   });
   document.querySelector("#movieTicker").addEventListener("click", (event) => {
-    const movie = event.target.closest("[data-ticker-movie]");
-    if (movie) showMovie(movie.dataset.tickerMovie);
+    const details = event.target.closest("[data-details]");
+    const watchlist = event.target.closest("[data-watchlist]");
+    const externalLink = event.target.closest("[data-open]");
+    if (details) showMovie(details.dataset.details);
+    if (watchlist) toggleWatchlist(watchlist.dataset.watchlist);
+    if (externalLink) backendApi().open_url(externalLink.dataset.open);
   });
   document.querySelector("#resetFilters").addEventListener("click", () => {
     elements.search.value = "";
