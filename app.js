@@ -238,17 +238,37 @@ function showToast(message) {
 
 function genreColor(movie) {
   const colors = {
-    Action: "#ff5b43",
-    Adventure: "#f1bd50",
-    Animation: "#5d8cff",
-    Comedy: "#55c59f",
-    Crime: "#d16d91",
-    Drama: "#c18cff",
-    Horror: "#98a0ad",
-    "Sci-Fi": "#42b9c5",
-    Thriller: "#ff8a4c",
+    Action: "#f04e23",
+    Adventure: "#f1a93f",
+    Animation: "#4c86ff",
+    Comedy: "#0fae7b",
+    Crime: "#e0447c",
+    Drama: "#8f6bff",
+    Fantasy: "#b44cff",
+    Horror: "#5f6b7c",
+    Mystery: "#0ea5b7",
+    Romance: "#ff6ea1",
+    "Sci-Fi": "#00a8c9",
+    Thriller: "#ff7a3d",
   };
-  return colors[movie.genres[0]] || "#55c59f";
+  return colors[movie.genres[0]] || "#0fae7b";
+}
+
+// Deterministic color + emoji per mood keep the chips playful but stable between renders.
+const MOOD_STYLES = [
+  { color: "#f04e23", emoji: "\ud83d\udd25" },
+  { color: "#4c86ff", emoji: "\ud83c\udf0c" },
+  { color: "#0fae7b", emoji: "\ud83c\udf3f" },
+  { color: "#b44cff", emoji: "\ud83d\udd2e" },
+  { color: "#e0447c", emoji: "\ud83d\udc95" },
+  { color: "#0ea5b7", emoji: "\ud83c\udf0a" },
+  { color: "#f1a93f", emoji: "\u26a1" },
+];
+
+function moodStyle(mood) {
+  let hash = 0;
+  for (const char of mood) hash = (hash * 31 + char.charCodeAt(0)) % 997;
+  return MOOD_STYLES[hash % MOOD_STYLES.length];
 }
 
 function updateDiscoveryPulse(movies) {
@@ -910,9 +930,10 @@ async function startApp() {
     .sort((first, second) => second[1] - first[1])
     .slice(0, 5)
     .map(([mood]) => mood);
-  elements.quickMoods.innerHTML = popularMoods.map((mood) => (
-    `<button type="button" data-quick-mood="${escapeHtml(mood)}">${escapeHtml(mood)}</button>`
-  )).join("");
+  elements.quickMoods.innerHTML = popularMoods.map((mood) => {
+    const style = moodStyle(mood);
+    return `<button type="button" data-quick-mood="${escapeHtml(mood)}" style="--mood-color: ${style.color}"><span aria-hidden="true">${style.emoji}</span> ${escapeHtml(mood)}</button>`;
+  }).join("");
   fillSelect(elements.favoriteMovie, state.movies.map((movie) => movie.title));
   [...elements.favoriteMovie.options].forEach((option, index) => { option.value = state.movies[index].id; });
 

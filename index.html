@@ -69,7 +69,10 @@
 
     button, input, select { font: inherit; }
     button { cursor: pointer; }
+    button:active { transform: scale(.96); }
     img { display: block; max-width: 100%; }
+    ::selection { color: white; background: var(--accent); }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
     /* Announcement scrolls away normally; only the compact topbar stays pinned. */
     .announcement {
@@ -199,7 +202,10 @@
       border-radius: 999px;
       background: transparent;
       font-weight: 700;
+      transition: color 160ms ease, background 160ms ease;
     }
+
+    .nav button:hover:not(.active) { color: var(--ink); background: color-mix(in srgb, var(--accent) 10%, transparent); }
 
     .nav button.active { color: white; background: var(--accent); }
 
@@ -333,6 +339,7 @@
       transform-style: preserve-3d;
     }
     .hero-marquee-item .poster-tag { top: 6px; left: 6px; }
+    .hero-marquee-item:hover { border-color: var(--accent); }
     .hero-marquee-item img { width: 100%; flex: 1; min-height: 0; object-fit: cover; }
     .hero-marquee-body { display: block; padding: 8px 10px 9px; background: var(--surface); }
     .hero-marquee-body strong { display: block; overflow: hidden; color: var(--ink); font: 700 12.5px "Space Grotesk", sans-serif; text-overflow: ellipsis; white-space: nowrap; }
@@ -366,7 +373,7 @@
     .hero-dot.active { width: 22px; border-radius: 5px; background: var(--accent); }
 
     /* Thin gradient bar echoes the orange-to-blue divider used between melius.com sections. */
-    .section-divider { height: 4px; margin: 18px 0 0; border-radius: 999px; background: var(--gradient); opacity: .85; }
+    .section-divider { height: 4px; margin: 18px 0 0; border-radius: 999px; background: var(--gradient); background-size: 200% 100%; opacity: .85; animation: gradient-drift 7s linear infinite; }
 
     .movie-ticker { position: relative; width: 100%; margin: 20px 0 0; border-block: 1px solid var(--line); background: var(--surface); }
     .movie-ticker-track { display: flex; flex-wrap: wrap; gap: 10px; padding: 12px; }
@@ -411,9 +418,9 @@
     .discovery-status strong { display: block; font: 700 14px "Space Grotesk", sans-serif; }
     .discovery-status span:last-child { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }
     .quick-moods { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
-    .quick-moods button { padding: 7px 10px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 12px; font-weight: 700; }
-    .quick-moods button:hover { color: var(--ink); border-color: var(--accent); transform: translateY(-1px); }
-    .quick-moods button.active { color: white; border-color: var(--accent); background: var(--accent); }
+    .quick-moods button { --mood-color: var(--accent); padding: 7px 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 12px; font-weight: 700; transition: color 160ms ease, border-color 160ms ease, background 160ms ease, transform 160ms ease, box-shadow 160ms ease; }
+    .quick-moods button:hover { color: var(--ink); border-color: var(--mood-color); transform: translateY(-2px); box-shadow: 0 6px 16px color-mix(in srgb, var(--mood-color) 30%, transparent); }
+    .quick-moods button.active { color: white; border-color: var(--mood-color); background: var(--mood-color); box-shadow: 0 6px 16px color-mix(in srgb, var(--mood-color) 40%, transparent); }
 
     /* Discovery filters collapse from five columns on smaller screens. */
     .filters {
@@ -428,7 +435,8 @@
       backdrop-filter: blur(14px) saturate(1.3);
     }
 
-    select { width: 100%; padding: 10px; color: var(--ink); border: 1px solid var(--line); border-radius: 5px; background: var(--surface); }
+    select { width: 100%; padding: 10px; color: var(--ink); border: 1px solid var(--line); border-radius: 5px; background: var(--surface); transition: border-color 160ms ease; }
+    select:hover, select:focus { border-color: var(--accent); }
 
     .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin: 34px 0 16px; }
     .section-heading p { margin: 4px 0 0; color: var(--muted); }
@@ -479,7 +487,7 @@
     .tags { min-height: 25px; color: var(--card-accent); font-size: 12px; font-weight: 700; }
     .card-actions { display: flex; gap: 8px; margin-top: 13px; padding-top: 12px; border-top: 1px solid var(--line); }
     .card-actions button { flex: 1; padding: 8px; }
-    .saved { color: white; background: var(--green); border-color: var(--green); }
+    .saved { color: white; background: var(--green); border-color: var(--green); animation: save-pop 380ms cubic-bezier(.3, 1.6, .5, 1); }
 
     .empty { padding: 70px 20px; text-align: center; border: 1px dashed var(--line); border-radius: 8px; color: var(--muted); background: var(--surface); }
     .hidden { display: none !important; }
@@ -575,7 +583,8 @@
     .auth-error { min-height: 20px; margin: 0; color: var(--accent-dark); font-size: 13px; }
     .auth-switch { padding: 4px; color: var(--green); border: 0; background: transparent; font-size: 13px; font-weight: 700; }
 
-    .toast { position: fixed; right: 22px; bottom: 22px; z-index: 50; padding: 12px 16px; color: white; border-radius: 5px; background: var(--ink); box-shadow: var(--shadow); }
+    .toast { position: fixed; right: 22px; bottom: 22px; z-index: 50; padding: 12px 16px; color: white; border-left: 4px solid var(--accent); border-radius: 5px; background: var(--ink); box-shadow: var(--shadow); animation: toast-in 320ms cubic-bezier(.2, 1.4, .4, 1); }
+    :root[data-theme="dark"] .toast { color: var(--paper); background: var(--ink); }
 
     /* Floating entry point for opening the movie assistant. */
     .chat-launcher {
@@ -697,6 +706,8 @@
     @keyframes launcher-pulse { 0%, 100% { box-shadow: var(--shadow), 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); } 50% { box-shadow: var(--shadow), 0 0 0 12px color-mix(in srgb, var(--accent) 0%, transparent); } }
     @keyframes ambient-drift { from { transform: scale(1.08) translate3d(-1.5%, -1%, 0); } to { transform: scale(1.14) translate3d(1.5%, 1%, 0); } }
     @keyframes pulse-ring { from { opacity: 0.8; transform: scale(0.65); } to { opacity: 0; transform: scale(1.35); } }
+    @keyframes save-pop { 0% { transform: scale(1); } 45% { transform: scale(1.14); } 100% { transform: scale(1); } }
+    @keyframes toast-in { from { opacity: 0; transform: translateY(14px) scale(.94); } }
 
     /* Tablet layout reduces catalog columns and rearranges the header. */
     @media (max-width: 900px) {
