@@ -421,7 +421,6 @@ async function toggleWatchlist(movieId) {
   state.watchlist = await backendApi().toggle_watchlist(movieId);
   updateDialogButton();
   render();
-  renderMovieTicker();
   showToast(state.watchlist.includes(movieId) ? "Added to your watchlist" : "Removed from your watchlist");
 }
 
@@ -458,8 +457,12 @@ function buildFeaturedMarquee() {
   for (let loop = 0; loop < loops; loop += 1) movies.forEach((movie) => items.push(movie));
   track.innerHTML = items.map((movie) => `
     <button class="hero-marquee-item" data-movie-id="${movie.id}" type="button" aria-label="View ${escapeHtml(movie.title)} details">
-      <img src="${escapeHtml(movie.backdrop)}" alt="">
-      <span class="hero-marquee-title">${escapeHtml(movie.title)}</span>
+      <span class="poster-tag">${escapeHtml(movie.type)}</span>
+      <img src="${escapeHtml(movie.poster)}" alt="">
+      <span class="hero-marquee-body">
+        <strong>${escapeHtml(movie.title)}</strong>
+        <small>\u2605 ${movie.rating.toFixed(1)} \u00b7 ${movie.year}</small>
+      </span>
     </button>
   `).join("");
   document.querySelector("#heroDots").innerHTML = movies.map((movie, movieIndex) => `
@@ -568,7 +571,13 @@ function renderMovieTicker() {
   const trendingMovies = state.movies
     .filter((movie) => !featuredIds.has(movie.id))
     .sort((first, second) => second.rating - first.rating);
-  document.querySelector("#movieTicker").innerHTML = trendingMovies.slice(0, 4).map(movieCard).join("");
+  document.querySelector("#movieTicker").innerHTML = trendingMovies.map((movie) => `
+    <button class="ticker-movie" data-ticker-movie="${movie.id}" type="button">
+      <img src="${escapeHtml(movie.backdrop)}" alt="">
+      <strong><span class="ticker-dot" aria-hidden="true"></span>${escapeHtml(movie.title)}</strong>
+      <span aria-hidden="true">\u203a</span>
+    </button>
+  `).join("");
 }
 
 function setupPageMotion() {
@@ -803,12 +812,8 @@ function attachEvents() {
     if (pageButton) goToPage(Number(pageButton.dataset.page));
   });
   document.querySelector("#movieTicker").addEventListener("click", (event) => {
-    const details = event.target.closest("[data-details]");
-    const watchlist = event.target.closest("[data-watchlist]");
-    const externalLink = event.target.closest("[data-open]");
-    if (details) showMovie(details.dataset.details);
-    if (watchlist) toggleWatchlist(watchlist.dataset.watchlist);
-    if (externalLink) backendApi().open_url(externalLink.dataset.open);
+    const movie = event.target.closest("[data-ticker-movie]");
+    if (movie) showMovie(movie.dataset.tickerMovie);
   });
   document.querySelector("#resetFilters").addEventListener("click", () => {
     elements.search.value = "";
@@ -889,10 +894,10 @@ async function startApp() {
   }
   state.watchlist = await backendApi().get_watchlist();
 
-  // Preload carousel images so automatic changes do not wait on the network.
+  // Preload marquee poster images so the moving strip never shows blank cards.
   featuredMovies().forEach((movie) => {
     const image = new Image();
-    image.src = movie.backdrop;
+    image.src = movie.poster;
   });
   renderMovieTicker();
 

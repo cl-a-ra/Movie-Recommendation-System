@@ -314,24 +314,29 @@
 
     /* Continuously scrolling, mirrored-fan marquee (matches melius.com's hero motion). */
     .hero-stage { position: absolute; right: 0; bottom: 62px; left: 0; height: 300px; overflow: hidden; perspective: 1100px; translate: 0 var(--hero-stage-shift, 0); }
-    .hero-marquee-track { position: absolute; top: 28px; left: 0; display: flex; align-items: center; height: 230px; gap: 16px; transform-style: preserve-3d; will-change: transform; }
+    .hero-marquee-track { position: absolute; top: 10px; left: 0; display: flex; align-items: center; height: 280px; gap: 16px; transform-style: preserve-3d; will-change: transform; }
     .hero-marquee-item {
       position: relative;
+      display: flex;
+      flex-direction: column;
       flex: 0 0 auto;
-      width: 230px;
+      width: 150px;
       height: 100%;
       overflow: hidden;
       padding: 0;
-      border: 1px solid #2c2e31;
+      text-align: left;
+      border: 1px solid var(--line);
       border-radius: 8px;
-      background: #111316;
+      background: var(--surface);
       box-shadow: 0 20px 60px rgba(0,0,0,.5);
       cursor: pointer;
       transform-style: preserve-3d;
     }
-    .hero-marquee-item img { width: 100%; height: 100%; object-fit: cover; }
-    .hero-marquee-item::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,.65)); }
-    .hero-marquee-title { position: absolute; z-index: 2; right: 12px; bottom: 10px; left: 12px; overflow: hidden; color: white; font: 700 13px "Space Grotesk", sans-serif; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
+    .hero-marquee-item .poster-tag { top: 6px; left: 6px; }
+    .hero-marquee-item img { width: 100%; flex: 1; min-height: 0; object-fit: cover; }
+    .hero-marquee-body { display: block; padding: 8px 10px 9px; background: var(--surface); }
+    .hero-marquee-body strong { display: block; overflow: hidden; color: var(--ink); font: 700 12.5px "Space Grotesk", sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+    .hero-marquee-body small { display: block; margin-top: 2px; color: var(--muted); font-size: 11px; }
 
     .hero-navigation {
       position: absolute;
@@ -363,8 +368,14 @@
     /* Thin gradient bar echoes the orange-to-blue divider used between melius.com sections. */
     .section-divider { height: 4px; margin: 18px 0 0; border-radius: 999px; background: var(--gradient); opacity: .85; }
 
-    .movie-ticker { width: 100%; margin: 20px 0 0; }
-    .movie-ticker-track { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+    .movie-ticker { position: relative; width: 100%; margin: 20px 0 0; border-block: 1px solid var(--line); background: var(--surface); }
+    .movie-ticker-track { display: flex; flex-wrap: wrap; gap: 10px; padding: 12px; }
+    .ticker-movie { display: grid; grid-template-columns: 54px minmax(130px, 220px) auto; align-items: center; gap: 11px; min-width: 250px; padding: 6px 14px 6px 6px; color: var(--ink); text-align: left; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); transition: border-color 180ms ease, transform 180ms ease; }
+    .ticker-movie:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .ticker-movie img { width: 54px; height: 38px; border-radius: 4px; object-fit: cover; }
+    .ticker-movie strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: "Space Grotesk", sans-serif; }
+    .ticker-movie span { color: var(--accent); font-size: 18px; }
+    .ticker-dot { display: inline-block; width: 6px; height: 6px; margin-right: 6px; vertical-align: middle; border-radius: 50%; background: var(--accent); }
     .ticker-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 22px 0 10px; }
     .ticker-heading p { margin: 0; color: var(--muted); font-size: 13px; }
 
@@ -698,10 +709,10 @@
       .quick-moods { justify-content: flex-start; }
       .hero { min-height: 750px; }
       .hero-stage { height: 270px; }
-      .hero-marquee-track { height: 205px; }
-      .hero-marquee-item { width: 190px; }
+      .hero-marquee-track { height: 250px; }
+      .hero-marquee-item { width: 135px; }
       .ticker-heading { margin-top: 18px; }
-      .movie-ticker-track { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .ticker-movie { min-width: 220px; }
     }
 
     /* Mobile layout prioritizes touch targets and gives chat a full inset panel. */
@@ -728,15 +739,16 @@
       #heroTitle { display: -webkit-box; font-size: 0.55em; white-space: normal; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
       .hero-content p { display: -webkit-box; overflow: hidden; font-size: 14px; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
       .hero-stage { bottom: 56px; height: 235px; }
-      .hero-marquee-track { height: 180px; }
-      .hero-marquee-item { width: 150px; }
+      .hero-marquee-track { height: 215px; }
+      .hero-marquee-item { width: 115px; }
       .discovery-bar { margin-top: 18px; }
       .quick-moods { flex-wrap: nowrap; margin-right: -12px; padding: 2px 12px 4px 0; overflow-x: auto; scrollbar-width: none; }
       .quick-moods::-webkit-scrollbar { display: none; }
       .quick-moods button { flex: 0 0 auto; }
       .hero-navigation { right: 50%; bottom: 14px; }
       .movie-ticker { margin-top: 14px; }
-      .movie-ticker-track { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .ticker-movie { grid-template-columns: 46px minmax(112px, 1fr) auto; min-width: 205px; }
+      .ticker-movie img { width: 46px; height: 34px; }
       .section-heading { align-items: flex-start; flex-direction: column; gap: 6px; }
       .filters { grid-template-columns: 1fr 1fr; padding: 12px; }
       .filters .secondary { grid-column: 1 / -1; }
