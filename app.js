@@ -450,9 +450,6 @@ function showFeaturedMovie(index) {
   document.querySelector("#heroImage").alt = `${featured.title} backdrop`;
   document.querySelector("#heroTitle").textContent = featured.title;
   document.querySelector("#heroOverview").textContent = featured.overview;
-  document.querySelector("#heroDots").innerHTML = movies.map((movie, movieIndex) => `
-    <button class="hero-dot ${movieIndex === state.featuredIndex ? "active" : ""}" data-featured="${movieIndex}" aria-label="Show ${escapeHtml(movie.title)}"></button>
-  `).join("");
 }
 
 function startFeaturedRotation() {
@@ -680,20 +677,6 @@ function attachEvents() {
 
   document.querySelectorAll(".nav button[data-view]").forEach((button) => button.addEventListener("click", () => changeView(button.dataset.view)));
   document.querySelector("#heroDetails").addEventListener("click", () => showMovie(featuredMovies()[state.featuredIndex].id));
-  document.querySelector("#heroPrevious").addEventListener("click", () => {
-    showFeaturedMovie(state.featuredIndex - 1);
-    startFeaturedRotation();
-  });
-  document.querySelector("#heroNext").addEventListener("click", () => {
-    showFeaturedMovie(state.featuredIndex + 1);
-    startFeaturedRotation();
-  });
-  document.querySelector("#heroDots").addEventListener("click", (event) => {
-    const dot = event.target.closest("[data-featured]");
-    if (!dot) return;
-    showFeaturedMovie(Number(dot.dataset.featured));
-    startFeaturedRotation();
-  });
   document.querySelector("#recommendButton").addEventListener("click", makeRecommendations);
   document.querySelector("#closeDialog").addEventListener("click", () => elements.dialog.close());
   document.querySelector("#dialogWatchlist").addEventListener("click", () => {

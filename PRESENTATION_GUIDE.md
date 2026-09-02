@@ -237,16 +237,16 @@ Run the demonstration in section 17, then summarize strengths and limitations.
 
 ### Featured hero carousel
 
-- **HTML:** `#hero`, `#heroImage`, `#heroTitle`, `#heroOverview`, and
-  `#heroDots` provide the image, text, and navigation containers.
+- **HTML:** `#hero`, `#heroImage`, `#heroTitle`, and `#heroOverview` provide the
+  image and text containers.
 - **CSS:** `.hero` creates one banner with a readable dark overlay.
   `.hero-changing` applies a short fade when the selected movie changes.
 - **JavaScript:** `featuredMovies()` selects the first five built-in titles.
-  `showFeaturedMovie(index)` updates the image, title, overview, and active dot.
+  `showFeaturedMovie(index)` updates the image, title, and overview.
 - **Automatic rotation:** `startFeaturedRotation()` uses `setInterval()` to
   show the next movie every four seconds.
-- **Controls:** Previous, Next, and dot listeners call `showFeaturedMovie()` and
-  restart the timer. The View Details button calls `showMovie()`.
+- There are no arrows, dots, or progress line. The View Details button calls
+  `showMovie()` for whichever title is currently featured.
 
 ### Discovery status and quick moods
 
@@ -559,9 +559,9 @@ Use this sequence for a five-to-seven-minute demonstration.
   Say: "The first view is Discover. The hero rotates through five featured
   movies, and the catalog loads from both local and online sources."
 
-2. **Use the hero arrows and click View Details.**
-  Say: "The arrows call one simple carousel function. View Details reuses the
-  standard movie dialog used by the rest of the interface."
+2. **Wait for the hero to change and click View Details.**
+  Say: "A small timer advances the recommendation automatically every four
+  seconds. View Details opens the standard movie dialog."
 
 3. **Choose a genre and mood, then change sorting.**
    Say: "The browser filters its current state immediately. No page reload is
