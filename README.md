@@ -5,6 +5,12 @@ and vanilla JavaScript. It runs as a desktop application or a hosted website.
 
 **Live website:** [mrs-movie-recommendation-system.vercel.app](https://mrs-movie-recommendation-system.vercel.app)
 
+## Course presentation
+
+See [PRESENTATION_GUIDE.md](PRESENTATION_GUIDE.md) for slide-ready talking
+points, architecture diagrams, a UI-to-code explanation, recommendation
+formulas, a live demonstration script, and likely viva questions.
+
 ## Run the app
 
 1. Install Python 3.10 or newer.
