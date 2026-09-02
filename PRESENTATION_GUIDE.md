@@ -46,7 +46,7 @@ moods.
 5. **Watchlist:** Save or remove movies and keep them between visits.
 6. **For You:** Generate similar or personalized recommendations.
 7. **MRS Chat Bot:** Convert natural-language requests into ranked suggestions.
-8. **Featured marquee:** Present recent films in two animated poster streams.
+8. **Featured carousel:** Present five films in a simple rotating hero banner.
 9. **Theme and responsive UI:** Support light/dark themes and different screens.
 10. **Accounts:** Create an account, sign in securely, and separate each user's
     saved movies.
@@ -104,7 +104,7 @@ sequenceDiagram
     Server->>Data: Read built-in catalog
     Data-->>Server: Movie records
     Server-->>Browser: JSON movie array
-    Browser->>Browser: Build filters, cards, ticker, and marquee
+    Browser->>Browser: Build filters, cards, and featured carousel
     Browser->>Server: discover_movies(0)
     Server->>Data: Request recent Cinemeta movies
     Data-->>Server: Current movie metadata
@@ -210,7 +210,7 @@ Run the demonstration in section 17, then summarize strengths and limitations.
 | File | Exact responsibility |
 |---|---|
 | `index.html` | Contains all page markup and CSS: navigation, hero, filters, cards, dialogs, chat, themes, animations, and responsive rules. |
-| `app.js` | Holds browser state, renders movies, handles user events, calls the backend, controls the marquee, and updates every dynamic UI section. |
+| `app.js` | Holds browser state, renders movies, handles user events, calls the backend, controls the featured carousel, and updates every dynamic UI section. |
 | `app.py` | Contains the shared `MovieApi`, online movie requests, recommendation logic, chat matching, desktop watchlist storage, and PyWebView startup. |
 | `web_app.py` | Creates the Flask server, serves frontend files, exposes API routes, validates account input, and manages signed-in sessions. |
 | `auth_store.py` | Creates and queries the SQLite `users` and `watchlist` tables and securely hashes passwords. |
@@ -235,27 +235,21 @@ Run the demonstration in section 17, then summarize strengths and limitations.
 - **Search behavior:** typing filters current data through `currentMovies()`.
   Submitting calls `search_movies()` for online IMDb suggestions.
 
-### Featured hero and moving posters
+### Featured hero carousel
 
-- **HTML:** `#hero`, `#heroTitle`, `#heroOverview`, `#heroStage`,
-  `#heroMarqueeLeft`, and `#heroMarqueeRight` provide the containers.
-- **CSS:** `.hero-marquee-half` clips each side. `.hero-marquee-item` defines a
-  poster card. Perspective and transforms create the fan-like depth.
-- **JavaScript:** `latestMarqueeMovies()` selects the newest 16 known titles.
-  `buildFeaturedMarquee()` divides them into two different groups and repeats
-  enough cards to fill the screen.
-- **Animation:** `stepMarquee()` runs through `requestAnimationFrame`. It moves
-  both tracks at 86 pixels per second in opposite directions. It measures each
-  card's distance from the center and changes its scale and Y-axis rotation.
-- **Controls:** `jumpFeaturedBy()` handles arrow and swipe movement.
-  `jumpFeaturedTo()` handles the navigation dots.
-- **Interaction:** hovering pauses the marquee and clicking a poster calls
-  `showMovie()`.
+- **HTML:** `#hero`, `#heroImage`, `#heroTitle`, `#heroOverview`, and
+  `#heroDots` provide the image, text, and navigation containers.
+- **CSS:** `.hero` creates one banner with a readable dark overlay.
+  `.hero-changing` applies a short fade when the selected movie changes.
+- **JavaScript:** `featuredMovies()` selects the first five built-in titles.
+  `showFeaturedMovie(index)` updates the image, title, overview, and active dot.
+- **Automatic rotation:** `startFeaturedRotation()` uses `setInterval()` to
+  show the next movie every four seconds.
+- **Controls:** Previous, Next, and dot listeners call `showFeaturedMovie()` and
+  restart the timer. The View Details button calls `showMovie()`.
 
-### Discovery ticker and quick moods
+### Discovery status and quick moods
 
-- `renderMovieTicker()` selects highly rated built-in titles that are not in
-  the featured set and creates the compact ticker buttons.
 - `updateDiscoveryPulse()` displays the current result count, average rating,
   and number of active filters.
 - `startApp()` counts repeated moods in the built-in catalog and creates buttons
@@ -280,8 +274,6 @@ Run the demonstration in section 17, then summarize strengths and limitations.
   result in `#movieGrid`.
 - Event delegation on `elements.grid` handles Details, Add, and IMDb actions
   with one click listener instead of one listener per card.
-- Pointer movement sets `--card-rx` and `--card-ry`; CSS uses those custom
-  properties for the subtle 3D hover tilt.
 
 ### Movie details dialog
 
@@ -326,7 +318,6 @@ Run the demonstration in section 17, then summarize strengths and limitations.
   overrides the same tokens for dark mode.
 - `loadTheme()` restores the user's saved theme from `localStorage`.
 - `toggleTheme()` changes the root data attribute and saves the preference.
-- `setupPageMotion()` applies scroll-based header, hero, and reveal effects.
 - Media queries at 900, 620, and 400 pixels change columns, navigation, hero
   dimensions, dialogs, and chat placement for smaller screens.
 - `prefers-reduced-motion` disables nonessential motion for accessibility.
@@ -565,12 +556,12 @@ result types, normalizes them, and links results to trusted IMDb title pages.
 Use this sequence for a five-to-seven-minute demonstration.
 
 1. **Open the home page.**
-   Say: "The first view is Discover. The hero contains two independent streams
-   of recent movies, and the catalog loads from both local and online sources."
+  Say: "The first view is Discover. The hero rotates through five featured
+  movies, and the catalog loads from both local and online sources."
 
-2. **Hover over the hero and click a poster.**
-   Say: "Hovering pauses the animation. Clicking any poster reuses the standard
-   details dialog, so the behavior remains consistent across the interface."
+2. **Use the hero arrows and click View Details.**
+  Say: "The arrows call one simple carousel function. View Details reuses the
+  standard movie dialog used by the rest of the interface."
 
 3. **Choose a genre and mood, then change sorting.**
    Say: "The browser filters its current state immediately. No page reload is
@@ -675,6 +666,15 @@ the grid continues to work for new cards and uses less repeated setup.
 3. Cache external requests and add rate limiting.
 4. Expand unit tests to external-data normalization and recommendation scores.
 5. Add collaborative filtering after collecting enough anonymized interactions.
+
+### Can the system show movie trailers?
+
+Yes. The simplest approach is to add an official YouTube trailer URL or video
+ID to each built-in movie record and show a `Watch trailer` button in the movie
+dialog. Clicking it can open the official trailer in a new tab, which keeps the
+code small. An embedded player is also possible, but it adds iframe lifecycle,
+privacy, and availability handling. The application should link to official
+trailers rather than hosting copyrighted video clips itself.
 
 ## 19. Important Claims to Avoid
 

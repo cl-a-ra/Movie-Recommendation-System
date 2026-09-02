@@ -15,6 +15,7 @@ const state = {
   searchRequestId: 0,
   selectedMovie: null,
   featuredIndex: 0,
+  featuredTimer: null,
   user: null,
 };
 
@@ -201,7 +202,8 @@ function setTheme(theme) {
 
 function loadTheme() {
   const savedTheme = localStorage.getItem("mrsmovies_theme");
-  setTheme(savedTheme || "dark");
+  const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  setTheme(savedTheme || systemTheme);
 }
 
 function toggleTheme() {
@@ -238,29 +240,17 @@ function showToast(message) {
 
 function genreColor(movie) {
   const colors = {
-    Action: "#f43f5e",
-    Adventure: "#a855f7",
-    Animation: "#3b82f6",
-    Comedy: "#10b981",
-    Crime: "#e11d48",
-    Drama: "#8b5cf6",
-    Fantasy: "#d946ef",
-    Horror: "#64748b",
-    Mystery: "#06b6d4",
-    Romance: "#ec4899",
-    "Sci-Fi": "#0ea5e9",
-    Thriller: "#f59e0b",
+    Action: "#ff5b43",
+    Adventure: "#f1bd50",
+    Animation: "#5d8cff",
+    Comedy: "#55c59f",
+    Crime: "#d16d91",
+    Drama: "#c18cff",
+    Horror: "#98a0ad",
+    "Sci-Fi": "#42b9c5",
+    Thriller: "#ff8a4c",
   };
-  return colors[movie.genres[0]] || "#8b5cf6";
-}
-
-// Deterministic color per mood keeps the chips playful but stable between renders.
-const MOOD_COLORS = ["#a855f7", "#ec4899", "#06b6d4", "#10b981", "#f43f5e", "#3b82f6", "#fbbf24"];
-
-function moodColor(mood) {
-  let hash = 0;
-  for (const char of mood) hash = (hash * 31 + char.charCodeAt(0)) % 997;
-  return MOOD_COLORS[hash % MOOD_COLORS.length];
+  return colors[movie.genres[0]] || "#55c59f";
 }
 
 function updateDiscoveryPulse(movies) {
@@ -331,7 +321,6 @@ function movieCard(movie, index) {
   return `
     <article class="movie-card" style="--card-accent: ${genreColor(movie)}; animation-delay: ${Math.min(index * 45, 300)}ms">
       <button class="poster-button" data-details="${movie.id}" aria-label="View ${escapeHtml(movie.title)} details">
-        <span class="poster-tag">${escapeHtml(movie.type)}</span>
         <img class="poster" src="${escapeHtml(movie.poster)}" alt="${escapeHtml(movie.title)} poster">
       </button>
       <div class="card-body">
@@ -442,192 +431,34 @@ async function makeRecommendations() {
   render();
 }
 
-// ---------- Featured recommendation marquee ----------
-// Continuously scrolling, mirrored-fan carousel modeled on melius.com's hero motion:
-// a repeated strip of cards drifts sideways while each card's tilt/scale/opacity is
-// recomputed every frame from its live distance to the stage's center.
-const marquee = {
-  offset: 0,
-  speed: 86,
-  itemWidth: 0,
-  cycleLength: 0,
-  paused: false,
-  lastTimestamp: null,
-  rafId: null,
-  centered: false,
-};
-
+// ---------- Featured recommendation carousel ----------
 function featuredMovies() {
-  // 8 unique titles ensure a full screen of marquee cards never repeats a movie.
-  return state.movies.slice(0, 8);
+  return state.movies.slice(0, 5);
 }
 
-function latestMarqueeMovies() {
-  return allKnownMovies()
-    .sort((first, second) => Number(second.year) - Number(first.year) || Number(second.rating || 0) - Number(first.rating || 0))
-    .slice(0, 16);
-}
+function showFeaturedMovie(index) {
+  const movies = featuredMovies();
+  if (!movies.length) return;
 
-function buildFeaturedMarquee() {
-  const movies = latestMarqueeMovies();
-  const leftTrack = document.querySelector("#heroMarqueeLeft");
-  const rightTrack = document.querySelector("#heroMarqueeRight");
-  if (!movies.length || !leftTrack || !rightTrack) return;
-  const shuffle = (movieList) => {
-    const shuffledMovies = [...movieList];
-    for (let movieIndex = shuffledMovies.length - 1; movieIndex > 0; movieIndex -= 1) {
-      const randomIndex = Math.floor(Math.random() * (movieIndex + 1));
-      [shuffledMovies[movieIndex], shuffledMovies[randomIndex]] = [shuffledMovies[randomIndex], shuffledMovies[movieIndex]];
-    }
-    return shuffledMovies;
-  };
-  const leftMovies = shuffle(movies.filter((movie, movieIndex) => movieIndex % 2 === 0));
-  const rightMovies = shuffle(movies.filter((movie, movieIndex) => movieIndex % 2 === 1));
-  marquee.cycleLength = Math.min(leftMovies.length, rightMovies.length);
-  const loops = Math.max(4, Math.ceil(window.innerWidth / (marquee.cycleLength * 170)) + 2);
-  const trackMarkup = (trackMovies) => Array.from({ length: loops }, () => trackMovies).flat().map((movie) => `
-    <button class="hero-marquee-item" data-movie-id="${movie.id}" type="button" aria-label="View ${escapeHtml(movie.title)} details">
-      <span class="poster-tag">${escapeHtml(movie.type)}</span>
-      <img src="${escapeHtml(movie.poster)}" alt="">
-      <span class="hero-marquee-body">
-        <strong>${escapeHtml(movie.title)}</strong>
-        <small>\u2605 ${movie.rating.toFixed(1)} \u00b7 ${movie.year}</small>
-      </span>
-    </button>
-  `).join("");
-  rightTrack.innerHTML = trackMarkup(rightMovies);
-  leftTrack.innerHTML = trackMarkup(leftMovies);
-  const heroMovies = featuredMovies();
-  const ambientImg = document.querySelector("#heroAmbientImage");
-  if (ambientImg && !ambientImg.src && heroMovies[0]) ambientImg.src = heroMovies[0].backdrop;
-  document.querySelector("#heroDots").innerHTML = heroMovies.map((movie, movieIndex) => `
+  state.featuredIndex = (index + movies.length) % movies.length;
+  const featured = movies[state.featuredIndex];
+  const hero = document.querySelector("#hero");
+  hero.classList.remove("hero-changing");
+  void hero.offsetWidth;
+  hero.classList.add("hero-changing");
+  document.querySelector("#heroImage").src = featured.backdrop;
+  document.querySelector("#heroImage").alt = `${featured.title} backdrop`;
+  document.querySelector("#heroTitle").textContent = featured.title;
+  document.querySelector("#heroOverview").textContent = featured.overview;
+  document.querySelector("#heroDots").innerHTML = movies.map((movie, movieIndex) => `
     <button class="hero-dot ${movieIndex === state.featuredIndex ? "active" : ""}" data-featured="${movieIndex}" aria-label="Show ${escapeHtml(movie.title)}"></button>
   `).join("");
 }
 
-function updateFeaturedInfo(movie) {
-  const movies = featuredMovies();
-  const movieIndex = movies.findIndex((item) => item.id === movie.id);
-  if (movieIndex === -1) return;
-  if (movieIndex === state.featuredIndex && marquee.centered) return;
-  marquee.centered = true;
-  state.featuredIndex = movieIndex;
-  document.querySelector("#heroAmbientImage").src = movie.backdrop;
-  document.querySelector("#heroTitle").textContent = movie.title;
-  document.querySelector("#heroOverview").textContent = movie.overview;
-  document.querySelectorAll("#heroDots [data-featured]").forEach((dot, index) => {
-    dot.classList.toggle("active", index === movieIndex);
-  });
-}
-
-function jumpFeaturedBy(steps) {
-  if (!marquee.itemWidth) return;
-  marquee.offset += steps * marquee.itemWidth;
-}
-
-function jumpFeaturedTo(targetIndex) {
-  const movies = featuredMovies();
-  if (!movies.length) return;
-  let diff = (targetIndex - state.featuredIndex) % movies.length;
-  if (diff > movies.length / 2) diff -= movies.length;
-  if (diff < -movies.length / 2) diff += movies.length;
-  jumpFeaturedBy(diff);
-}
-
-function stepMarquee(timestamp) {
-  const stage = document.querySelector("#heroStage");
-  const leftTrack = document.querySelector("#heroMarqueeLeft");
-  const rightTrack = document.querySelector("#heroMarqueeRight");
-  if (!stage || !leftTrack || !rightTrack) return;
-  if (marquee.lastTimestamp == null) marquee.lastTimestamp = timestamp;
-  const delta = Math.min((timestamp - marquee.lastTimestamp) / 1000, 0.1);
-  marquee.lastTimestamp = timestamp;
-
-  if (!marquee.itemWidth) {
-    const firstItem = rightTrack.querySelector(".hero-marquee-item");
-    const trackStyle = firstItem && getComputedStyle(rightTrack);
-    const itemStyle = firstItem && getComputedStyle(firstItem);
-    // offsetWidth ignores the per-frame rotate/scale transforms, unlike getBoundingClientRect.
-    if (firstItem) {
-      marquee.itemWidth = firstItem.offsetWidth
-        + parseFloat(itemStyle.marginLeft || "0")
-        + parseFloat(itemStyle.marginRight || "0")
-        + parseFloat(trackStyle.columnGap || "0");
-    }
-    marquee.offset = 0;
-  }
-  const loopWidth = marquee.itemWidth * marquee.cycleLength;
-
-  if (!marquee.paused && marquee.itemWidth) {
-    marquee.offset += marquee.speed * delta;
-  }
-  if (loopWidth > 0) {
-    while (marquee.offset >= loopWidth) marquee.offset -= loopWidth;
-    while (marquee.offset < 0) marquee.offset += loopWidth;
-  }
-  // Same offset drives both streams outward from the center split.
-  rightTrack.style.transform = `translateX(${marquee.offset - loopWidth}px)`;
-  leftTrack.style.transform = `translateX(${loopWidth - marquee.offset}px)`;
-
-  const stageRect = stage.getBoundingClientRect();
-  const centerX = stageRect.left + stageRect.width / 2;
-  stage.querySelectorAll(".hero-marquee-item").forEach((item) => {
-    const rect = item.getBoundingClientRect();
-    const itemCenter = rect.left + rect.width / 2;
-    const signed = (itemCenter - centerX) / (stageRect.width / 2);
-    const grow = Math.min(Math.abs(signed), 1);
-    // Cards are born tiny at the center split and grow/tilt as they travel outward.
-    item.style.transform = `rotateY(${Math.sign(signed) * grow * 30}deg) scaleX(${0.86 + grow * 0.14}) scaleY(${0.35 + grow * 0.65})`;
-    item.style.zIndex = String(Math.round(grow * 100));
-  });
-
-  marquee.rafId = requestAnimationFrame(stepMarquee);
-}
-
 function startFeaturedRotation() {
-  if (marquee.rafId) return;
-  marquee.speed = 86;
-  marquee.lastTimestamp = null;
-  marquee.rafId = requestAnimationFrame(stepMarquee);
-}
-
-function renderMovieTicker() {
-  // Show titles beyond the hero's rotation so this row isn't just a repeat of it.
-  const featuredIds = new Set(featuredMovies().map((movie) => movie.id));
-  const trendingMovies = state.movies
-    .filter((movie) => !featuredIds.has(movie.id))
-    .sort((first, second) => second.rating - first.rating);
-  document.querySelector("#movieTicker").innerHTML = trendingMovies.map((movie) => `
-    <button class="ticker-movie" data-ticker-movie="${movie.id}" type="button">
-      <img src="${escapeHtml(movie.backdrop)}" alt="">
-      <strong><span class="ticker-dot" aria-hidden="true"></span>${escapeHtml(movie.title)}</strong>
-      <span aria-hidden="true">\u203a</span>
-    </button>
-  `).join("");
-}
-
-function setupPageMotion() {
-  const motionSections = document.querySelectorAll(".movie-ticker, .discovery-bar, .filters, .section-heading, .movie-grid, .pagination");
-  motionSections.forEach((section) => section.classList.add("motion-section"));
-
-  let motionFrame = null;
-  const updateScrollMotion = () => {
-    motionFrame = null;
-    const scrollAmount = Math.min(window.scrollY, 320);
-    document.querySelector(".topbar").classList.toggle("scrolled", window.scrollY > 24);
-    document.querySelector("#hero").style.setProperty("--hero-copy-shift", `${scrollAmount * 0.1}px`);
-    document.querySelector("#hero").style.setProperty("--hero-stage-shift", `${scrollAmount * -0.06}px`);
-    motionSections.forEach((section) => {
-      const bounds = section.getBoundingClientRect();
-      if (bounds.top < window.innerHeight * 0.94 && bounds.bottom > 0) section.classList.add("in-view");
-    });
-  };
-  window.addEventListener("scroll", () => {
-    if (!motionFrame) motionFrame = window.requestAnimationFrame(updateScrollMotion);
-  }, { passive: true });
-  updateScrollMotion();
-  window.requestAnimationFrame(updateScrollMotion);
-  window.addEventListener("pageshow", updateScrollMotion, { once: true });
+  window.clearInterval(state.featuredTimer);
+  if (featuredMovies().length < 2) return;
+  state.featuredTimer = window.setInterval(() => showFeaturedMovie(state.featuredIndex + 1), 4000);
 }
 
 // ---------- MRS Chat Bot interface ----------
@@ -808,27 +639,13 @@ function attachEvents() {
     state.currentPage = 1;
     changeView("discover");
   });
-  const surpriseBtn = document.querySelector("#surpriseButton");
-  surpriseBtn.addEventListener("click", () => {
+  document.querySelector("#surpriseButton").addEventListener("click", () => {
     const movies = currentMovies().length ? currentMovies() : state.movies;
     if (!movies.length) return;
-    surpriseBtn.classList.add("rolling");
-    showToast("🎲 Rolling for your next movie...");
-    setTimeout(() => {
-      surpriseBtn.classList.remove("rolling");
-      const randomValues = new Uint32Array(1);
-      crypto.getRandomValues(randomValues);
-      showMovie(movies[randomValues[0] % movies.length].id);
-    }, 450);
+    const randomValues = new Uint32Array(1);
+    crypto.getRandomValues(randomValues);
+    showMovie(movies[randomValues[0] % movies.length].id);
   });
-  const heroElement = document.querySelector("#hero");
-  if (heroElement) {
-    heroElement.addEventListener("pointermove", (event) => {
-      const bounds = heroElement.getBoundingClientRect();
-      heroElement.style.setProperty("--mouse-x", `${event.clientX - bounds.left}px`);
-      heroElement.style.setProperty("--mouse-y", `${event.clientY - bounds.top}px`);
-    });
-  }
   elements.authButton.addEventListener("click", openAccount);
   elements.authForm.addEventListener("submit", submitAuthentication);
   document.querySelector("#authSwitch").addEventListener("click", () => {
@@ -851,10 +668,6 @@ function attachEvents() {
     const pageButton = event.target.closest("[data-page]");
     if (pageButton) goToPage(Number(pageButton.dataset.page));
   });
-  document.querySelector("#movieTicker").addEventListener("click", (event) => {
-    const movie = event.target.closest("[data-ticker-movie]");
-    if (movie) showMovie(movie.dataset.tickerMovie);
-  });
   document.querySelector("#resetFilters").addEventListener("click", () => {
     elements.search.value = "";
     elements.type.value = "All";
@@ -867,41 +680,19 @@ function attachEvents() {
 
   document.querySelectorAll(".nav button[data-view]").forEach((button) => button.addEventListener("click", () => changeView(button.dataset.view)));
   document.querySelector("#heroDetails").addEventListener("click", () => showMovie(featuredMovies()[state.featuredIndex].id));
-  document.querySelector("#heroPrevious").addEventListener("click", () => jumpFeaturedBy(-1));
-  document.querySelector("#heroNext").addEventListener("click", () => jumpFeaturedBy(1));
+  document.querySelector("#heroPrevious").addEventListener("click", () => {
+    showFeaturedMovie(state.featuredIndex - 1);
+    startFeaturedRotation();
+  });
+  document.querySelector("#heroNext").addEventListener("click", () => {
+    showFeaturedMovie(state.featuredIndex + 1);
+    startFeaturedRotation();
+  });
   document.querySelector("#heroDots").addEventListener("click", (event) => {
     const dot = event.target.closest("[data-featured]");
     if (!dot) return;
-    jumpFeaturedTo(Number(dot.dataset.featured));
-  });
-  const heroStage = document.querySelector("#heroStage");
-  heroStage.addEventListener("click", (event) => {
-    const item = event.target.closest("[data-movie-id]");
-    if (item) showMovie(item.dataset.movieId);
-  });
-  heroStage.addEventListener("mouseenter", () => { marquee.paused = true; });
-  heroStage.addEventListener("mouseleave", () => { marquee.paused = false; });
-  window.addEventListener("resize", () => { marquee.itemWidth = 0; });
-  let swipeStartX = null;
-  heroStage.addEventListener("pointerdown", (event) => { swipeStartX = event.clientX; });
-  heroStage.addEventListener("pointerup", (event) => {
-    if (swipeStartX === null || Math.abs(event.clientX - swipeStartX) < 45) return;
-    jumpFeaturedBy(event.clientX < swipeStartX ? 1 : -1);
-    swipeStartX = null;
-  });
-  elements.grid.addEventListener("pointermove", (event) => {
-    if (event.pointerType !== "mouse") return;
-    const card = event.target.closest(".movie-card");
-    if (!card) return;
-    const bounds = card.getBoundingClientRect();
-    card.style.setProperty("--card-rx", `${((event.clientY - bounds.top) / bounds.height - 0.5) * -5}deg`);
-    card.style.setProperty("--card-ry", `${((event.clientX - bounds.left) / bounds.width - 0.5) * 6}deg`);
-  });
-  elements.grid.addEventListener("pointerout", (event) => {
-    const card = event.target.closest(".movie-card");
-    if (!card || card.contains(event.relatedTarget)) return;
-    card.style.removeProperty("--card-rx");
-    card.style.removeProperty("--card-ry");
+    showFeaturedMovie(Number(dot.dataset.featured));
+    startFeaturedRotation();
   });
   document.querySelector("#recommendButton").addEventListener("click", makeRecommendations);
   document.querySelector("#closeDialog").addEventListener("click", () => elements.dialog.close());
@@ -934,12 +725,11 @@ async function startApp() {
   }
   state.watchlist = await backendApi().get_watchlist();
 
-  // Preload marquee poster images so the moving strip never shows blank cards.
+  // Preload carousel images so automatic changes do not wait on the network.
   featuredMovies().forEach((movie) => {
     const image = new Image();
-    image.src = movie.poster;
+    image.src = movie.backdrop;
   });
-  renderMovieTicker();
 
   const genres = [...new Set(state.movies.flatMap((movie) => movie.genres))].sort();
   const moods = [...new Set(state.movies.flatMap((movie) => movie.moods))].sort();
@@ -951,19 +741,16 @@ async function startApp() {
     .slice(0, 5)
     .map(([mood]) => mood);
   elements.quickMoods.innerHTML = popularMoods.map((mood) => (
-    `<button type="button" data-quick-mood="${escapeHtml(mood)}" style="--mood-color: ${moodColor(mood)}">${escapeHtml(mood)}</button>`
+    `<button type="button" data-quick-mood="${escapeHtml(mood)}">${escapeHtml(mood)}</button>`
   )).join("");
   fillSelect(elements.favoriteMovie, state.movies.map((movie) => movie.title));
   [...elements.favoriteMovie.options].forEach((option, index) => { option.value = state.movies[index].id; });
 
-  buildFeaturedMarquee();
+  showFeaturedMovie(0);
   startFeaturedRotation();
   attachEvents();
-  setupPageMotion();
   render();
   await loadMoreDiscover();
-  marquee.itemWidth = 0;
-  buildFeaturedMarquee();
 }
 
 // Desktop waits for Python; hosted pages can start when the DOM is ready.
