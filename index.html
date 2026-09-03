@@ -644,6 +644,34 @@
     <section id="movieGrid" class="movie-grid" aria-live="polite"></section>
     <div id="emptyState" class="empty hidden"><h3>No movies found</h3><p id="emptyMessage">Try changing your search or filters.</p></div>
     <nav id="pagination" class="pagination" aria-label="Discover pages"></nav>
+
+    <!-- MRS Chat Bot stays directly below pagination and never covers movie cards. -->
+    <aside class="chat-dock">
+      <button id="chatLauncher" class="chat-launcher" aria-label="Open MRS Chat Bot" aria-expanded="false" title="MRS Chat Bot"><span class="chat-launcher-icon" aria-hidden="true"></span></button>
+      <section id="chatPanel" class="chat-panel hidden" aria-label="MRS Chat Bot">
+        <header class="chat-header">
+          <span class="chat-avatar" aria-hidden="true">M</span>
+          <div class="chat-identity"><span class="chat-heading">MRS Chat Bot</span><span class="chat-status">Online</span></div>
+          <button id="chatClose" class="chat-close" aria-label="Close MRS Chat Bot">X</button>
+        </header>
+        <div id="chatMessages" class="chat-messages" aria-live="polite">
+          <div class="chat-welcome">
+            <span class="chat-welcome-label">Your movie guide</span>
+            <h3>What should we watch?</h3>
+            <p>Choose a starting point or describe the kind of story you want.</p>
+          </div>
+          <div id="chatPrompts" class="chat-prompts">
+            <button class="chat-prompt" data-prompt="I want an emotional sci-fi movie">Emotional sci-fi</button>
+            <button class="chat-prompt" data-prompt="Show me movies like Inception">Like Inception</button>
+            <button class="chat-prompt" data-prompt="Recommend something funny">Something funny</button>
+          </div>
+        </div>
+        <form id="chatForm" class="chat-form">
+          <input id="chatInput" class="chat-input" maxlength="300" autocomplete="off" placeholder="Message MRS Chat Bot..." aria-label="Message MRS Chat Bot">
+          <button id="chatSend" class="primary chat-send" type="submit" aria-label="Send message">↑</button>
+        </form>
+      </section>
+    </aside>
   </main>
 
   <!-- Data attribution and automatically updated copyright year. -->
@@ -700,33 +728,6 @@
   </dialog>
 
   <div id="toast" class="toast hidden" role="status"></div>
-  <!-- MRS Chat Bot: Python chooses recommendations; JavaScript renders the conversation. -->
-  <aside class="chat-dock">
-    <button id="chatLauncher" class="chat-launcher" aria-label="Open MRS Chat Bot" aria-expanded="false" title="MRS Chat Bot"><span class="chat-launcher-icon" aria-hidden="true"></span></button>
-    <section id="chatPanel" class="chat-panel hidden" aria-label="MRS Chat Bot">
-      <header class="chat-header">
-        <span class="chat-avatar" aria-hidden="true">M</span>
-        <div class="chat-identity"><span class="chat-heading">MRS Chat Bot</span><span class="chat-status">Online</span></div>
-        <button id="chatClose" class="chat-close" aria-label="Close MRS Chat Bot">X</button>
-      </header>
-      <div id="chatMessages" class="chat-messages" aria-live="polite">
-        <div class="chat-welcome">
-          <span class="chat-welcome-label">Your movie guide</span>
-          <h3>What should we watch?</h3>
-          <p>Choose a starting point or describe the kind of story you want.</p>
-        </div>
-        <div id="chatPrompts" class="chat-prompts">
-          <button class="chat-prompt" data-prompt="I want an emotional sci-fi movie">Emotional sci-fi</button>
-          <button class="chat-prompt" data-prompt="Show me movies like Inception">Like Inception</button>
-          <button class="chat-prompt" data-prompt="Recommend something funny">Something funny</button>
-        </div>
-      </div>
-      <form id="chatForm" class="chat-form">
-        <input id="chatInput" class="chat-input" maxlength="300" autocomplete="off" placeholder="Message MRS Chat Bot..." aria-label="Message MRS Chat Bot">
-        <button id="chatSend" class="primary chat-send" type="submit" aria-label="Send message">↑</button>
-      </form>
-    </section>
-  </aside>
   <script src="app.js"></script>
 </body>
 </html>
