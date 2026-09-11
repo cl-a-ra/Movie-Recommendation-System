@@ -69,10 +69,12 @@ class MovieApi:
         movies = []
         fallback_image = MOVIES[0]["poster"]
         for item in results:
-            if str(item.get("name", "")).strip().casefold() in {"tom & jerry", "tom and jerry"}:
+            item_id = item.get("imdb_id") or item.get("id", "")
+            item_title = str(item.get("name", "")).strip().casefold()
+            if item_id == "tt43718175" or item_title in {"tom & cherry", "tom and cherry"}:
                 continue
 
-            imdb_id = item.get("imdb_id") or item.get("id", "")
+            imdb_id = item_id
             if not imdb_id:
                 continue
 
