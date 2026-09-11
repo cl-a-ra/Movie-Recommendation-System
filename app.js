@@ -222,6 +222,20 @@ function escapeHtml(value) {
   return textContainer.innerHTML;
 }
 
+const fallbackImageUrl = new URL("assets/poster-fallback.svg", document.baseURI).href;
+
+function loadImage(image, source, altText = "") {
+  image.alt = altText;
+  image.classList.remove("image-fallback");
+  image.onerror = () => {
+    image.onerror = null;
+    image.classList.add("image-fallback");
+    image.src = fallbackImageUrl;
+  };
+  image.src = source || fallbackImageUrl;
+  if (!source) image.classList.add("image-fallback");
+}
+
 function fillSelect(select, values) {
   values.forEach((value) => {
     const option = document.createElement("option");
@@ -321,7 +335,7 @@ function movieCard(movie, index) {
   return `
     <article class="movie-card" style="--card-accent: ${genreColor(movie)}; animation-delay: ${Math.min(index * 45, 300)}ms">
       <button class="poster-button" data-details="${movie.id}" aria-label="View ${escapeHtml(movie.title)} details">
-        <img class="poster" src="${escapeHtml(movie.poster)}" alt="${escapeHtml(movie.title)} poster">
+        <img class="poster" data-image-source="${escapeHtml(movie.poster)}" alt="${escapeHtml(movie.title)} poster">
       </button>
       <div class="card-body">
         <div class="card-top">
@@ -343,6 +357,9 @@ function render() {
   updateDiscoveryPulse(movies);
   const query = elements.search.value.trim();
   elements.grid.innerHTML = movies.map(movieCard).join("");
+  elements.grid.querySelectorAll("[data-image-source]").forEach((image) => {
+    loadImage(image, image.dataset.imageSource, image.alt);
+  });
   elements.grid.classList.toggle("hidden", movies.length === 0);
   elements.empty.classList.toggle("hidden", movies.length !== 0);
   elements.count.textContent = `${movies.length} title${movies.length === 1 ? "" : "s"}`;
@@ -394,8 +411,7 @@ function showMovie(movieId) {
   if (!movie) return;
 
   state.selectedMovie = movie;
-  document.querySelector("#dialogImage").src = movie.backdrop;
-  document.querySelector("#dialogImage").alt = `${movie.title} backdrop`;
+  loadImage(document.querySelector("#dialogImage"), movie.backdrop, `${movie.title} backdrop`);
   document.querySelector("#dialogType").textContent = `${movie.type} | ${movie.year}`;
   document.querySelector("#dialogTitle").textContent = movie.title;
   document.querySelector("#dialogRating").textContent = movie.rating ? `${movie.rating.toFixed(1)} / 10` : "See IMDb";
@@ -446,8 +462,7 @@ function showFeaturedMovie(index) {
   hero.classList.remove("hero-changing");
   void hero.offsetWidth;
   hero.classList.add("hero-changing");
-  document.querySelector("#heroImage").src = featured.backdrop;
-  document.querySelector("#heroImage").alt = `${featured.title} backdrop`;
+  loadImage(document.querySelector("#heroImage"), featured.backdrop, `${featured.title} backdrop`);
   document.querySelector("#heroTitle").textContent = featured.title;
   document.querySelector("#heroOverview").textContent = featured.overview;
 }
@@ -485,8 +500,7 @@ function appendChatMessage(role, message, movieIds = []) {
       button.className = "chat-suggestion";
       button.dataset.chatMovie = movie.id;
       const poster = document.createElement("img");
-      poster.src = movie.poster;
-      poster.alt = "";
+      loadImage(poster, movie.poster);
       const details = document.createElement("span");
       const title = document.createElement("strong");
       title.textContent = movie.title;

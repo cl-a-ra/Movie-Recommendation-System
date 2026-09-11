@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900" role="img" aria-labelledby="title description">
+  <title id="title">MRSmovies poster placeholder</title>
+  <desc id="description">A colorful cinema-inspired placeholder for an unavailable poster.</desc>
+  <rect width="600" height="900" fill="#17191f"/>
+  <path d="M0 0h205L600 395v205z" fill="#d9492f"/>
+  <path d="M600 0v205L205 600H0V395L395 0z" fill="#f1bd50"/>
+  <path d="M0 600h205L600 205v190L95 900H0z" fill="#087b6b"/>
+  <path d="M600 600v300H300z" fill="#315cce"/>
+  <circle cx="300" cy="430" r="112" fill="#17191f" stroke="#fff" stroke-width="14"/>
+  <circle cx="300" cy="430" r="18" fill="#fff"/>
+  <circle cx="300" cy="360" r="13" fill="#fff"/>
+  <circle cx="361" cy="465" r="13" fill="#fff"/>
+  <circle cx="239" cy="465" r="13" fill="#fff"/>
+  <path d="M385 515l73 43" stroke="#fff" stroke-width="14" stroke-linecap="round"/>
+  <rect x="90" y="685" width="420" height="105" fill="#17191f"/>
+  <text x="300" y="750" fill="#fff" font-family="Arial, sans-serif" font-size="47" font-weight="700" text-anchor="middle">MRSmovies</text>
+  <text x="300" y="825" fill="#fff" font-family="Arial, sans-serif" font-size="24" text-anchor="middle">POSTER UNAVAILABLE</text>
+</svg>
