@@ -4,6 +4,7 @@ MOVIES = [
     {
         "id": "m1",
         "title": "Inception",
+        "trailer_url": "https://www.youtube.com/watch?v=5EiV_HXIIGs",
         "type": "Movie",
         "year": 2010,
         "rating": 8.8,
@@ -19,6 +20,7 @@ MOVIES = [
     {
         "id": "m2",
         "title": "Interstellar",
+        "trailer_url": "https://www.youtube.com/watch?v=zSWdZVtXT7E",
         "type": "Movie",
         "year": 2014,
         "rating": 8.7,
@@ -34,6 +36,7 @@ MOVIES = [
     {
         "id": "m3",
         "title": "Severance",
+        "trailer_url": "https://www.youtube.com/watch?v=xEQP4VVuyrY",
         "type": "Series",
         "year": 2022,
         "rating": 8.7,
@@ -49,6 +52,7 @@ MOVIES = [
     {
         "id": "m4",
         "title": "The Dark Knight",
+        "trailer_url": "https://www.youtube.com/watch?v=_PZpmTj1Q8Q",
         "type": "Movie",
         "year": 2008,
         "rating": 9.0,
@@ -64,6 +68,7 @@ MOVIES = [
     {
         "id": "m5",
         "title": "Everything Everywhere All at Once",
+        "trailer_url": "https://www.youtube.com/watch?v=wxN1T1uxQ2g",
         "type": "Movie",
         "year": 2022,
         "rating": 8.0,
@@ -79,6 +84,7 @@ MOVIES = [
     {
         "id": "m6",
         "title": "Stranger Things",
+        "trailer_url": "https://www.youtube.com/watch?v=b9EkMc79ZSU",
         "type": "Series",
         "year": 2016,
         "rating": 8.7,
@@ -94,6 +100,7 @@ MOVIES = [
     {
         "id": "m7",
         "title": "The Batman",
+        "trailer_url": "https://www.youtube.com/watch?v=mqqft2x_Aa4",
         "type": "Movie",
         "year": 2022,
         "rating": 7.9,
@@ -109,6 +116,7 @@ MOVIES = [
     {
         "id": "m8",
         "title": "Dune: Part Two",
+        "trailer_url": "https://www.youtube.com/watch?v=Way9Dexny3w",
         "type": "Movie",
         "year": 2024,
         "rating": 8.6,
@@ -124,6 +132,7 @@ MOVIES = [
     {
         "id": "m9",
         "title": "Spider-Man: Across the Spider-Verse",
+        "trailer_url": "https://www.youtube.com/watch?v=cqGjhVJWtEg",
         "type": "Movie",
         "year": 2023,
         "rating": 8.7,
@@ -139,6 +148,7 @@ MOVIES = [
     {
         "id": "m10",
         "title": "The Last of Us",
+        "trailer_url": "https://www.youtube.com/watch?v=uLtkt8BonwM",
         "type": "Series",
         "year": 2023,
         "rating": 8.8,
@@ -154,6 +164,7 @@ MOVIES = [
     {
         "id": "m11",
         "title": "Parasite",
+        "trailer_url": "https://www.youtube.com/watch?v=isOGD_7hNIY",
         "type": "Movie",
         "year": 2019,
         "rating": 8.5,
@@ -169,6 +180,7 @@ MOVIES = [
     {
         "id": "m12",
         "title": "Blade Runner 2049",
+        "trailer_url": "https://www.youtube.com/watch?v=gCcx85zbxz4",
         "type": "Movie",
         "year": 2017,
         "rating": 8.0,

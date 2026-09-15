@@ -669,12 +669,13 @@ the grid continues to work for new cards and uses less repeated setup.
 
 ### Can the system show movie trailers?
 
-Yes. The simplest approach is to add an official YouTube trailer URL or video
-ID to each built-in movie record and show a `Watch trailer` button in the movie
-dialog. Clicking it can open the official trailer in a new tab, which keeps the
-code small. An embedded player is also possible, but it adds iframe lifecycle,
-privacy, and availability handling. The application should link to official
-trailers rather than hosting copyrighted video clips itself.
+Yes. All 12 built-in movies and series have an official YouTube trailer link.
+Open a title's details and click `Watch trailer` to open it in a new browser tab
+(or the system browser in the desktop app). Links point to studio, distributor,
+or streaming-service uploads; the application does not host video clips or
+embed a player. Online discovery and search titles without a verified trailer
+link do not show the button. YouTube availability can vary by region or change
+over time.
 
 ## 19. Important Claims to Avoid
 

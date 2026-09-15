@@ -376,6 +376,7 @@
     .dialog-title h2 { font-size: clamp(28px, 5vw, 44px); }
     .dialog-body { padding: 24px; }
     .dialog-body p { color: var(--muted); line-height: 1.65; }
+    .dialog-actions { display: flex; flex-wrap: wrap; gap: 10px; }
     .facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 18px 0; }
     .fact { padding: 12px; border-left: 3px solid var(--yellow); background: var(--paper); }
     .fact small { display: block; color: var(--muted); }
@@ -700,7 +701,10 @@
       <p id="dialogOverview"></p>
       <p><strong>Genres:</strong> <span id="dialogGenres"></span></p>
       <p><strong>Streaming:</strong> <span id="dialogStreaming"></span></p>
-      <button id="dialogWatchlist" class="primary">Add to watchlist</button>
+      <div class="dialog-actions">
+        <button id="dialogWatchlist" class="primary">Add to watchlist</button>
+        <button id="dialogTrailer" class="secondary hidden" type="button" title="Watch official trailer on YouTube (opens in browser or new tab)">Watch trailer</button>
+      </div>
     </div>
   </dialog>
 

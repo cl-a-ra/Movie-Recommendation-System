@@ -109,11 +109,15 @@ const webApi = {
     return updated;
   },
   open_url: async (url) => {
-    if (!url.startsWith("https://www.imdb.com/title/")) return false;
-    window.open(url, "_blank", "noopener");
+    if (typeof url !== "string" || (!url.startsWith("https://www.imdb.com/title/") && !isTrailerUrl(url))) return false;
+    window.open(url, "_blank", "noopener,noreferrer");
     return true;
   },
 };
+
+function isTrailerUrl(url) {
+  return typeof url === "string" && /^https:\/\/www\.youtube\.com\/watch\?v=[A-Za-z0-9_-]{11}$/.test(url);
+}
 
 function backendApi() {
   return window.pywebview?.api || webApi;
@@ -420,6 +424,7 @@ function showMovie(movieId) {
   document.querySelector("#dialogOverview").textContent = movie.overview;
   document.querySelector("#dialogGenres").textContent = movie.genres.join(", ");
   document.querySelector("#dialogStreaming").textContent = movie.streaming.join(", ");
+  document.querySelector("#dialogTrailer").classList.toggle("hidden", !isTrailerUrl(movie.trailer_url));
   updateDialogButton();
   elements.dialog.showModal();
 }
@@ -693,6 +698,10 @@ function attachEvents() {
   document.querySelector("#heroDetails").addEventListener("click", () => showMovie(featuredMovies()[state.featuredIndex].id));
   document.querySelector("#recommendButton").addEventListener("click", makeRecommendations);
   document.querySelector("#closeDialog").addEventListener("click", () => elements.dialog.close());
+  document.querySelector("#dialogTrailer").addEventListener("click", () => {
+    const trailerUrl = state.selectedMovie?.trailer_url;
+    if (isTrailerUrl(trailerUrl)) backendApi().open_url(trailerUrl);
+  });
   document.querySelector("#dialogWatchlist").addEventListener("click", () => {
     if (state.selectedMovie.source === "imdb") {
       backendApi().open_url(state.selectedMovie.external_url);

@@ -161,8 +161,11 @@ class MovieApi:
         return movies
 
     def open_url(self, url):
-        """Open only trusted IMDb title links in the system browser."""
-        if url.startswith("https://www.imdb.com/title/"):
+        """Open trusted IMDb title and YouTube trailer links in the browser."""
+        if isinstance(url, str) and (
+            url.startswith("https://www.imdb.com/title/")
+            or re.fullmatch(r"https://www\.youtube\.com/watch\?v=[A-Za-z0-9_-]{11}", url)
+        ):
             webbrowser.open(url)
             return True
         return False
