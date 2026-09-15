@@ -377,6 +377,8 @@
     .dialog-body { padding: 24px; }
     .dialog-body p { color: var(--muted); line-height: 1.65; }
     .dialog-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    #dialogTrailer { min-width: 164px; }
+    #dialogTrailer:disabled { cursor: default; opacity: 0.65; }
     .facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 18px 0; }
     .fact { padding: 12px; border-left: 3px solid var(--yellow); background: var(--paper); }
     .fact small { display: block; color: var(--muted); }
@@ -703,7 +705,7 @@
       <p><strong>Streaming:</strong> <span id="dialogStreaming"></span></p>
       <div class="dialog-actions">
         <button id="dialogWatchlist" class="primary">Add to watchlist</button>
-        <button id="dialogTrailer" class="secondary hidden" type="button" title="Watch official trailer on YouTube (opens in browser or new tab)">Watch trailer</button>
+        <button id="dialogTrailer" class="secondary hidden" type="button" aria-live="polite" title="Watch trailer on YouTube (opens in browser or new tab)">Watch trailer</button>
       </div>
     </div>
   </dialog>

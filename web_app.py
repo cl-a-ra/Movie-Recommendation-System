@@ -78,6 +78,11 @@ def recommend(movie_id):
     return jsonify(movie_api.recommend(movie_id))
 
 
+@web_app.get("/api/trailer/<movie_id>")
+def trailer(movie_id):
+    return jsonify(movie_api.get_trailer(movie_id, request.args.get("type", "Movie")))
+
+
 @web_app.post("/api/chat")
 def chat():
     body = request.get_json(silent=True) or {}

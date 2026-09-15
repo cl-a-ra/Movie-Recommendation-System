@@ -160,6 +160,35 @@ class MovieApi:
 
         return movies
 
+    def get_trailer(self, movie_id, media_type="Movie"):
+        """Look up a YouTube trailer in Cinemeta's title metadata."""
+        if not isinstance(movie_id, str) or not re.fullmatch(r"(?:catalog-|imdb-)tt[0-9]+", movie_id):
+            return {"status": "unavailable", "url": None}
+        if media_type not in {"Movie", "Series"}:
+            return {"status": "unavailable", "url": None}
+        imdb_id = movie_id.split("-", 1)[1]
+        category = "series" if media_type == "Series" else "movie"
+        url = f"https://v3-cinemeta.strem.io/meta/{category}/{imdb_id}.json"
+        request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        try:
+            with urllib.request.urlopen(request, timeout=10) as response:
+                payload = json.load(response)
+            metadata = payload.get("meta") if isinstance(payload, dict) else None
+            if not isinstance(metadata, dict):
+                return {"status": "unavailable", "url": None}
+            trailers = metadata.get("trailers")
+            if not isinstance(trailers, list):
+                trailers = []
+            for trailer in trailers:
+                if not isinstance(trailer, dict) or str(trailer.get("type", "")).casefold() != "trailer":
+                    continue
+                video_id = trailer.get("source")
+                if isinstance(video_id, str) and re.fullmatch(r"[A-Za-z0-9_-]{11}", video_id):
+                    return {"status": "available", "url": f"https://www.youtube.com/watch?v={video_id}"}
+        except (OSError, urllib.error.URLError, json.JSONDecodeError, ValueError):
+            return {"status": "error", "url": None}
+        return {"status": "unavailable", "url": None}
+
     def open_url(self, url):
         """Open trusted IMDb title and YouTube trailer links in the browser."""
         if isinstance(url, str) and (

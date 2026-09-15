@@ -673,8 +673,12 @@ Yes. All 12 built-in movies and series have an official YouTube trailer link.
 Open a title's details and click `Watch trailer` to open it in a new browser tab
 (or the system browser in the desktop app). Links point to studio, distributor,
 or streaming-service uploads; the application does not host video clips or
-embed a player. Online discovery and search titles without a verified trailer
-link do not show the button. YouTube availability can vary by region or change
+embed a player. Online discovery and IMDb search titles look up trailers from
+Cinemeta when their details open, including series. The button shows a loading
+state, `Watch trailer` when a link is found, `Trailer unavailable` when none is
+listed, or `Retry trailer` after a lookup failure. Successful lookups are reused
+for the browser session. Online links are provider-supplied, not independently
+verified official uploads. YouTube availability can vary by region or change
 over time.
 
 ## 19. Important Claims to Avoid

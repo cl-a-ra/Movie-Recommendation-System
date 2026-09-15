@@ -72,6 +72,7 @@ const webApi = {
   get_movies: () => fetchJson("/api/movies"),
   discover_movies: (skip) => fetchJson(`/api/discover?skip=${encodeURIComponent(skip)}`),
   search_movies: (query) => fetchJson(`/api/search?q=${encodeURIComponent(query)}`),
+  get_trailer: (movieId, mediaType) => fetchJson(`/api/trailer/${encodeURIComponent(movieId)}?type=${encodeURIComponent(mediaType)}`),
   recommend: (movieId) => fetchJson(`/api/recommend/${encodeURIComponent(movieId)}`),
   recommend_for_user: () => fetchJson("/api/recommendations/personalized"),
   chat: (message) => fetchJson("/api/chat", {
@@ -410,6 +411,47 @@ function renderPagination(query) {
 }
 
 // ---------- Movie details and watchlist ----------
+const trailerRequests = new Map();
+
+function updateTrailerButton(movie) {
+  const button = document.querySelector("#dialogTrailer");
+  const available = isTrailerUrl(movie.trailer_url);
+  const online = /^(catalog-|imdb-)tt[0-9]+$/.test(movie.id);
+  button.classList.toggle("hidden", !available && !online);
+  button.disabled = !available && movie.trailer_status !== "error";
+  button.textContent = available ? "Watch trailer"
+    : movie.trailer_status === "unavailable" ? "Trailer unavailable"
+    : movie.trailer_status === "error" ? "Retry trailer" : "Loading trailer...";
+  button.title = available ? "Watch trailer on YouTube (opens in browser or new tab)"
+    : movie.trailer_status === "unavailable" ? "No trailer is listed by the movie provider"
+    : movie.trailer_status === "error" ? "Trailer lookup failed; try again" : "Checking for a trailer";
+}
+
+async function loadTrailer(movie) {
+  if (isTrailerUrl(movie.trailer_url) || !/^(catalog-|imdb-)tt[0-9]+$/.test(movie.id)) return;
+  movie.trailer_status = "loading";
+  updateTrailerButton(movie);
+  const key = `${movie.type}:${movie.id}`;
+  if (!trailerRequests.has(key)) {
+    trailerRequests.set(key, Promise.resolve().then(() => backendApi().get_trailer(movie.id, movie.type)));
+  }
+  try {
+    const result = await trailerRequests.get(key);
+    if (result?.status === "available" && isTrailerUrl(result.url)) {
+      movie.trailer_url = result.url;
+      movie.trailer_status = "available";
+    } else if (result?.status === "unavailable") {
+      movie.trailer_status = "unavailable";
+    } else {
+      throw new Error("Trailer lookup failed");
+    }
+  } catch (error) {
+    movie.trailer_status = "error";
+    trailerRequests.delete(key);
+  }
+  if (state.selectedMovie === movie && elements.dialog.open) updateTrailerButton(movie);
+}
+
 function showMovie(movieId) {
   const movie = allKnownMovies().find((item) => item.id === movieId);
   if (!movie) return;
@@ -424,9 +466,10 @@ function showMovie(movieId) {
   document.querySelector("#dialogOverview").textContent = movie.overview;
   document.querySelector("#dialogGenres").textContent = movie.genres.join(", ");
   document.querySelector("#dialogStreaming").textContent = movie.streaming.join(", ");
-  document.querySelector("#dialogTrailer").classList.toggle("hidden", !isTrailerUrl(movie.trailer_url));
+  updateTrailerButton(movie);
   updateDialogButton();
   elements.dialog.showModal();
+  loadTrailer(movie);
 }
 
 function updateDialogButton() {
@@ -699,8 +742,10 @@ function attachEvents() {
   document.querySelector("#recommendButton").addEventListener("click", makeRecommendations);
   document.querySelector("#closeDialog").addEventListener("click", () => elements.dialog.close());
   document.querySelector("#dialogTrailer").addEventListener("click", () => {
-    const trailerUrl = state.selectedMovie?.trailer_url;
+    const movie = state.selectedMovie;
+    const trailerUrl = movie?.trailer_url;
     if (isTrailerUrl(trailerUrl)) backendApi().open_url(trailerUrl);
+    else if (movie?.trailer_status === "error") loadTrailer(movie);
   });
   document.querySelector("#dialogWatchlist").addEventListener("click", () => {
     if (state.selectedMovie.source === "imdb") {
